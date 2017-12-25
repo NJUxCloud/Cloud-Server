@@ -42,7 +42,11 @@ INSTALLED_APPS = [
     'allauth',
     'allauth.account',
     'rest_auth.registration',
-    'demo.apps.DemoConfig'
+    'demo.apps.DemoConfig',
+    'apps.data.doc.apps.DocConfig',
+    'apps.data.audio.apps.AudioConfig',
+    'apps.data.codes.apps.CodesConfig',
+    'apps.data.picture.apps.PictureConfig'
 ]
 SITE_ID = 1
 
