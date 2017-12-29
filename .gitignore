@@ -1,3 +1,7 @@
 
 .idea/*
 djangoENV/*
+
+*.pyc
+CloudServer/__pycache__/*
+

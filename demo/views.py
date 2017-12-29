@@ -59,16 +59,16 @@ class searchBillByName(APIView):
     """
       通过bill中货物的名字,查找bill
     """
-    authentication_classes = (SessionAuthentication, TokenAuthentication)
 
     def get_object(self, name):
-        print(name)
         try:
             return Bills.objects.filter(goods__contains=name)
         except Bills.DoesNotExist:
             raise Http404
 
-    def get(self, request , format=None):
+    def get(self, request, format=None):
+        print('name')
+        print(request)
         snippet = self.get_object(request.data.get('name'))
         serializer = BillSerializer(snippet, many=True)
         return Response(serializer.data)
