@@ -43,7 +43,7 @@ INSTALLED_APPS = [
     'allauth.account',
     'rest_auth.registration',
     'demo.apps.DemoConfig',
-    'apps.uploader.apps.UploaderConfig'
+    'apps.data.apps.DataConfig'
 ]
 
 SITE_ID = 1
