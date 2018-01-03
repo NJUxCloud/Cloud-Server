@@ -4,6 +4,7 @@ import paramiko
 import re
 from time import sleep
 
+
 # 定义一个类，表示一台远端linux主机
 class Linux(object):
     # 通过IP, 用户名，密码，超时时间初始化一个远程Linux主机
@@ -52,17 +53,17 @@ class Linux(object):
                 # 设置sftp
                 self.sftp = paramiko.SFTPClient.from_transport(self.t)
                 # 如果没有抛出异常说明连接成功，直接返回
-                print (u'连接%s成功' % self.ip)
+                print(u'连接%s成功' % self.ip)
                 # 接收到的网络数据解码为str
-                print (self.chan.recv(65535).decode('utf-8'))
+                print(self.chan.recv(65535).decode('utf-8'))
                 return
             # 这里不对可能的异常如socket.error, socket.timeout细化，直接一网打尽
             except Exception as e1:
                 if self.try_times != 0:
-                    print (u'连接%s失败，进行重试' %self.ip)
+                    print(u'连接%s失败，进行重试' % self.ip)
                     self.try_times -= 1
                 else:
-                    print (u'重试3次失败，结束程序')
+                    print(u'重试3次失败，结束程序')
                     exit(1)
 
     # 断开连接
@@ -88,17 +89,17 @@ class Linux(object):
             ret = ret.decode('utf-8')
             result += ret
             if p.search(ret):
-                print( result)
+                print(result)
                 return result
 
     # 上传文件
-    def sftp_upload_file(self,file, dir_path,file_path):
+    def sftp_upload_file(self, file, dir_path, file_path):
         try:
-            cmd='test -d ./'+dir_path+' || mkdir -p '+dir_path
+            cmd = 'test -d ./' + dir_path + ' || mkdir -p ' + dir_path
             self.send(cmd)
-            self.sftp.putfo(file,file_path)
+            self.sftp.putfo(file, file_path)
         except Exception as e:
-            print (e)
+            print(e)
 
 # host = Linux()
 # host.connect()
