@@ -22,30 +22,15 @@ class DataView(APIView):
         # 文件类型(url, single, zip)
         file_type = request.POST.get('file_type')
         try:
-            if file_class == 'doc':
+            if file_class == 'doc' and file_type == 'single':
                 userid = request.POST.get('userid')
                 file = request.FILES.get('file')
                 # 根据时间随机生成文件名，防止用户多次上传的文件名一样
-                name_parts = file.name.split('.')
-                if len(name_parts) == 2:
-                    filename = name_parts[0] + '_' + time.strftime('%Y%m%d%H%M%S',
-                                                                   time.localtime(time.time())) + '.' + name_parts[1]
-                else:
-                    filename = '.'.join(name_parts[:-1]) + '_' + time.strftime('%Y%m%d%H%M%S',
-                                                                               time.localtime(time.time())) + '.' + \
-                               name_parts[-1]
+                filename = self.format_name(file.name)
                 dir_path = 'NJUCloud/' + userid + '/data/doc/'
                 file_path = dir_path + filename
-                host = Linux()
-                host.connect()
-                host.sftp_upload_file(file, dir_path, file_path)
-                host.close()
-
-                # save file_path to database
-                user = User.objects.get(pk=userid)
-                raw_data = RawData(file_path=file_path, file_type=RawData.DOC, owner=user)
-
-                raw_data.save()
+                self.upload_file(file=file, dir_path=dir_path, file_path=file_path)
+                self.save_to_db(user_id=userid, file_type=RawData.DOC, file_path=file_path)
             elif file_class == 'code':
                 pass
             elif file_class == 'audio':
@@ -61,3 +46,39 @@ class DataView(APIView):
     def get(self, request):
         return
 
+    def format_name(self, ori_name):
+        """
+        根据时间生成文件名，防止用户多次上传的文件名一样
+        在后缀前加上时间
+        TODO 还没考虑后缀名为.tar.gz这种多个组成的情况
+        :param ori_name:
+        :return:
+        """
+        name_parts = ori_name.split('.')
+        if len(name_parts) == 2:
+            filename = name_parts[0] + '_' + time.strftime('%Y%m%d%H%M%S',
+                                                           time.localtime(time.time())) + '.' + name_parts[1]
+        else:
+            filename = '.'.join(name_parts[:-1]) + '_' + time.strftime('%Y%m%d%H%M%S',
+                                                                       time.localtime(time.time())) + '.' + name_parts[
+                           -1]
+
+        return filename
+
+    def save_to_db(self, user_id, file_path, file_type):
+        """
+        存储到数据库
+        :param user_id:
+        :param file_path:
+        :param file_type: RawData.DOC, RawData.CODE, ...
+        :return:
+        """
+        user = User.objects.get(pk=user_id)
+        raw_data = RawData(file_path=file_path, file_type=file_type, owner=user)
+        raw_data.save()
+
+    def upload_file(self, file, dir_path, file_path):
+        host = Linux()
+        host.connect()
+        host.sftp_upload_file(file, dir_path, file_path)
+        host.close()
