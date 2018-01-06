@@ -27,5 +27,5 @@ urlpatterns = [
     # path to registration and its interface 注册用框架
     re_path(r'^rest-auth/registration/', include('rest_auth.registration.urls')),
     # 上传数据部分的路径
-    path('data/',include('apps.data.urls')),
+    path('data/', include('apps.data.urls')),
 ]

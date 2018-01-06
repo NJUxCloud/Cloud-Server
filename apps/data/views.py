@@ -1,10 +1,12 @@
 # coding=utf-8
 import time
+import traceback
 from rest_framework.views import APIView
 from rest_framework.response import Response
 from rest_framework import status
 
 from apps.data.models import RawData
+from django.contrib.auth.models import User
 from apps.data.util.remote_operation import Linux
 
 
@@ -24,17 +26,26 @@ class DataView(APIView):
                 userid = request.POST.get('userid')
                 file = request.FILES.get('file')
                 # 根据时间随机生成文件名，防止用户多次上传的文件名一样
-                filename = file.name + '_' + time.strftime('%Y%m%d%H%M%S', time.localtime(time.time()))
-                dir_path = 'NJUCloud' + userid + '/data/doc'
+                name_parts = file.name.split('.')
+                if len(name_parts) == 2:
+                    filename = name_parts[0] + '_' + time.strftime('%Y%m%d%H%M%S',
+                                                                   time.localtime(time.time())) + '.' + name_parts[1]
+                else:
+                    filename = '.'.join(name_parts[:-1]) + '_' + time.strftime('%Y%m%d%H%M%S',
+                                                                               time.localtime(time.time())) + '.' + \
+                               name_parts[-1]
+                dir_path = 'NJUCloud/' + userid + '/data/doc/'
                 file_path = dir_path + filename
                 host = Linux()
                 host.connect()
                 host.sftp_upload_file(file, dir_path, file_path)
                 host.close()
 
-                # save to file_path to database
-                new_raw_data = RawData(file_path=file_path, file_type=RawData.DOC, owner=userid)
-                new_raw_data.save()
+                # save file_path to database
+                user = User.objects.get(pk=userid)
+                raw_data = RawData(file_path=file_path, file_type=RawData.DOC, owner=user)
+
+                raw_data.save()
             elif file_class == 'code':
                 pass
             elif file_class == 'audio':
@@ -43,8 +54,10 @@ class DataView(APIView):
                 pass
 
         except Exception as e:
+            print(traceback.print_exc())
             return Response(status=status.HTTP_400_BAD_REQUEST)
         return Response(status=status.HTTP_200_OK)
 
     def get(self, request):
         return
+
