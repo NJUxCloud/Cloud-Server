@@ -33,7 +33,7 @@ class DataView(APIView):
             elif file_type == 'zip':
                 self.upload_and_save(request,need_unzip=True)
             elif file_type == 'url':
-                pass
+                self.handle_url(request)
 
         except Exception as e:
             print(traceback.print_exc())
@@ -52,7 +52,10 @@ class DataView(APIView):
         :return:
         """
         name_parts = ori_name.split('.')
-        if len(name_parts) == 2:
+        if len(name_parts) == 1:
+            filename = name_parts[0] + '_' + time.strftime('%Y%m%d%H%M%S',
+                                                          time.localtime(time.time()))
+        elif len(name_parts) == 2 :
             filename = name_parts[0] + '_' + time.strftime('%Y%m%d%H%M%S',
                                                            time.localtime(time.time())) + '.' + name_parts[1]
         else:
@@ -105,4 +108,27 @@ class DataView(APIView):
         if need_unzip:
             host.unzip_file(file_path)
         host.close()
+
+    def handle_url(self,request):
+        '''
+        通过url下载数据集到指定位置
+        如果url有多个用;隔离开
+        :param request:
+        :return:
+        '''
+        # 文件类别(doc, code, audio, picture)
+        file_class = request.POST.get('file_class')
+        userid = str(self.request.user.id)
+        urls = request.POST.get('url').split(';')
+        filename =self.format_name("url")
+        dir_path = 'NJUCloud/' + userid + '/data/' + file_class + '/'
+        file_path = dir_path + filename
+        host = Linux()
+        host.connect()
+        for url in urls:
+            command='wget -c -P ./'+file_path+' '+url
+            host.send(cmd=command)
+        host.close()
+        self.save_to_db(file_type=file_class, file_path=file_path)
+
 
