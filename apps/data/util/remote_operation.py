@@ -73,7 +73,6 @@ class Linux(object):
 
     # 发送要执行的命令
     def send(self, cmd):
-        print('send1')
         cmd += '\r'
         # 通过命令执行提示符来判断命令是否执行完成
         p = re.compile(r'#')
@@ -83,7 +82,6 @@ class Linux(object):
         self.chan.send(cmd)
         # 回显很长的命令可能执行较久，通过循环分批次取回回显
         while True:
-            print('send2')
             sleep(0.5)
             ret = self.chan.recv(65535)
             ret = ret.decode('utf-8')
@@ -101,6 +99,14 @@ class Linux(object):
         except Exception as e:
             print(e)
 
+    # 解压文件
+    def unzip_file(self,file_path):
+        unzip_dir_path=file_path.split('.')[0]
+        try:
+            cmd = 'unzip ./'+file_path+' -d '+unzip_dir_path+' && rm -rf '+unzip_dir_path+'__MACOSX'
+            self.send(cmd)
+        except Exception as e:
+            print(e)
 # host = Linux()
 # host.connect()
 # host.send('ls -l')
