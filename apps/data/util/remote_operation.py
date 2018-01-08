@@ -3,6 +3,9 @@
 import paramiko
 import re
 from time import sleep
+import traceback
+from stat import S_ISDIR
+import os
 
 
 # 定义一个类，表示一台远端linux主机
@@ -33,8 +36,8 @@ class Linux(object):
         # 链接失败的重试次数
         self.try_times = 3
 
-    # 调用该方法连接远程主机
     def connect(self):
+        """调用该方法连接远程主机"""
         while True:
             # 连接过程中可能会抛出异常，比如网络不通、链接超时
             try:
@@ -66,13 +69,20 @@ class Linux(object):
                     print(u'重试3次失败，结束程序')
                     exit(1)
 
-    # 断开连接
     def close(self):
+        """
+        断开连接
+        :return:
+        """
         self.chan.close()
         self.t.close()
 
-    # 发送要执行的命令
     def send(self, cmd):
+        """
+        发送要执行的命令
+        :param cmd:
+        :return:
+        """
         cmd += '\r'
         # 通过命令执行提示符来判断命令是否执行完成
         p = re.compile(r'#')
@@ -90,8 +100,14 @@ class Linux(object):
                 print(result)
                 return result
 
-    # 上传文件
     def sftp_upload_file(self, file, dir_path, file_path):
+        """
+        上传文件
+        :param file:
+        :param dir_path:
+        :param file_path:
+        :return:
+        """
         try:
             cmd = 'test -d ./' + dir_path + ' || mkdir -p ' + dir_path
             self.send(cmd)
@@ -99,15 +115,56 @@ class Linux(object):
         except Exception as e:
             print(e)
 
-    # 解压文件
-    def unzip_file(self,file_path):
-        unzip_dir_path=file_path.split('.')[0]
+    def unzip_file(self, file_path):
+        """
+        解压文件 unzip
+        :param file_path:
+        :return:
+        """
+        unzip_dir_path = file_path.split('.')[0]
         try:
-            cmd = 'unzip ./'+file_path+' -d '+unzip_dir_path+' && rm -rf '+unzip_dir_path+'__MACOSX'
+            cmd = 'unzip ./' + file_path + ' -d ' + unzip_dir_path + ' && rm -rf ' + unzip_dir_path + '__MACOSX'
             self.send(cmd)
         except Exception as e:
             print(e)
+
+    def download(self, remote_path, local_path):
+        """
+        递归下载远程服务器的整个目录或文件，并保持目录结构
+        :param remote_path: 远程文件或目录名称（绝对路径）
+        :param local_path: 本地文件或目录名称（绝对路径）
+        :return:
+        """
+        if not self.is_dir(remote_path):
+            self.sftp.get(remotepath=remote_path, localpath=local_path)
+            return
+
+        item_list = self.sftp.listdir(remote_path)
+        dest = str(local_path)
+        if not os.path.isdir(dest):
+            os.mkdir(path=dest)
+
+        for item in item_list:
+            item = str(item)
+            if self.is_dir(path=remote_path + '/' + item):
+                self.download(remote_path=remote_path + '/' + item, local_path=dest + '/' + item)
+            else:
+                self.sftp.get(remotepath=remote_path + '/' + item, localpath=dest + '/' + item)
+
+    def is_dir(self, path):
+        """
+        判断远程服务器的一个路径是否是目录(True)或文件(False)
+        :param path:
+        :return:
+        """
+        try:
+            return S_ISDIR(self.sftp.stat(path).st_mode)
+        except IOError:
+            return False
+
+
 # host = Linux()
 # host.connect()
-# host.send('ls -l')
+# host.download(remote_path='NJUCloud/1/data/doc/url_20180107161753',
+#               local_path='/Users/keenan/Downloads/url_20180107161753')
 # host.close()
