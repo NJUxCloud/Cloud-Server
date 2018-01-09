@@ -146,7 +146,8 @@ class DataView(APIView):
 
 
 class DataDetail(APIView):
-    def get(self, request, pk, relative_path, format=None):
+    def get(self, request, pk, format=None):
+        relative_path = request.GET.get('relative_path')
         return self.get_object(pk=pk, relative_path=relative_path)
 
     def get_object(self, pk, relative_path=None):
@@ -189,11 +190,12 @@ class DataDetail(APIView):
         if os.path.isfile(local_file_path):
             try:
                 mimetypes.init()
-                fsock = open(local_file_path, "r")
+                fsock = open(local_file_path, "rb")
                 filename = os.path.basename(local_file_path)
                 mime_type_guess = mimetypes.guess_type(filename)
+                print(mime_type_guess[0])
                 if mime_type_guess is not None:
-                    response = HttpResponse(fsock, content_type=mime_type_guess[0])
+                    response = HttpResponse(content=fsock.read(), content_type=mime_type_guess[0])
                 else:
                     response = HttpResponse(fsock)
                 response['Content-Disposition'] = 'attachment; filename=' + filename
