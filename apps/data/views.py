@@ -16,6 +16,7 @@ from apps.data.util.csv_handler import Parser
 from apps.data.util.file_walker import FileWalker
 from django.http import HttpResponse, HttpResponseNotFound
 import mimetypes
+import CloudServer.global_settings as global_settings
 
 
 class DataView(APIView):
@@ -156,7 +157,7 @@ class DataDetail(APIView):
         :return:
         """
         if relative_path is not None:
-            local_file_path = '/Users/keenan/Downloads/' + relative_path
+            local_file_path = global_settings.LOCAL_STORAGE_PATH + relative_path
             if local_file_path.endswith('.csv'):
                 file_type = RawData.DOC
             else:
@@ -166,7 +167,7 @@ class DataDetail(APIView):
             remote_file_path = raw_data.file_path
             filename = remote_file_path.split('/')[-1]
             # TODO 本地文件存储路径
-            local_file_path = '/Users/keenan/Downloads/' + filename
+            local_file_path = global_settings.LOCAL_STORAGE_PATH + filename
             file_type = raw_data.file_type
 
             # 先判断在本地是否存在这一份数据的缓存
