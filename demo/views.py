@@ -9,6 +9,7 @@ from demo.models import Bills
 from demo.permission import IsOwnerOrReadOnly
 from demo.serializers import BillSerializer
 
+
 # Create your views here.
 
 
@@ -45,6 +46,7 @@ class ShowBills(APIView):
         :param format:   respone formate
         :return:     {json} or serializer in proper format
         """
+        print(request.data)
         serializer = BillSerializer(data=request.data)
         if serializer.is_valid():
             self.perform_create(serializer)
