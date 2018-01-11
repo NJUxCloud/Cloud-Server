@@ -6,31 +6,6 @@ class FileWalker:
     def get_dir_tree_json(self, path):
         """
         遍历文件树，获得json结果
-        e.g.
-        {
-        "label": ".DS_Store",
-         "util": {
-                "label": "PageHelper.java"
-                },
-         "dao": {
-                "impl": {
-                        "label": "UserDAOImpl.java"
-                        },
-                "label": "DAOHelper.java"
-        },
-        "models": {
-            "label": "User.java"
-            },
-        "service": {
-            "impl": {
-                "label": "UserServiceImpl.java"
-                },
-                "label": "OrderService.java"
-        },
-        "factory": {
-            "label": "DAOFactory.java"
-        }
-        }
         :param path:
         :return:
         """
@@ -53,4 +28,8 @@ class FileWalker:
                 self.get_dir_tree_dict(path, root[item])
                 path = '/'.join(path.split('/')[:-1])
             else:
-                root['label'] = item
+                root[item] = item
+
+
+# walker = FileWalker()
+# print(walker.get_dir_tree_json('/Users/keenan/Documents/workspace/untitled1'))
