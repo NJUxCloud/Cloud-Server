@@ -44,6 +44,7 @@ INSTALLED_APPS = [
     'rest_auth.registration',
     'demo.apps.DemoConfig',
     'apps.data.apps.DataConfig'
+    'apps.preprocess.apps.PreprocessConfig'
 ]
 
 SITE_ID = 1
