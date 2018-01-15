@@ -28,4 +28,6 @@ urlpatterns = [
     re_path(r'^rest-auth/registration/', include('rest_auth.registration.urls')),
     # 上传数据部分的路径
     re_path(r'^data/', include('apps.data.urls')),
+    # 预处理部分的路径
+    re_path(r'^preprocess/', include('apps.preprocess.urls')),
 ]
