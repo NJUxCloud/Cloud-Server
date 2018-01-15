@@ -43,7 +43,7 @@ INSTALLED_APPS = [
     'allauth.account',
     'rest_auth.registration',
     'demo.apps.DemoConfig',
-    'apps.data.apps.DataConfig'
+    'apps.data.apps.DataConfig',
     'apps.preprocess.apps.PreprocessConfig'
 ]
 
