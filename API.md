@@ -14,7 +14,7 @@
     - [`AUTH` `GET` 获得用户已上传数据列表 /data/list/](#auth-get-%E8%8E%B7%E5%BE%97%E7%94%A8%E6%88%B7%E5%B7%B2%E4%B8%8A%E4%BC%A0%E6%95%B0%E6%8D%AE%E5%88%97%E8%A1%A8-datalist)
     - [`AUTH` `GET` 根据数据id获得数据内容 /data/([0-9]+)/](#auth-get-%E6%A0%B9%E6%8D%AE%E6%95%B0%E6%8D%AEid%E8%8E%B7%E5%BE%97%E6%95%B0%E6%8D%AE%E5%86%85%E5%AE%B9-data0-9)
     - [`AUTH` `POST` 用户上传文件 /data/](#auth-post-%E7%94%A8%E6%88%B7%E4%B8%8A%E4%BC%A0%E6%96%87%E4%BB%B6-data)
-    - [`AUTH` `DELETE` 删除数据文件 /data/(0-9]+)/](#auth-delete-%E5%88%A0%E9%99%A4%E6%95%B0%E6%8D%AE%E6%96%87%E4%BB%B6-data0-9)
+    - [`AUTH` `DELETE` 删除数据文件 /data/([0-9]+)/](#auth-delete-%E5%88%A0%E9%99%A4%E6%95%B0%E6%8D%AE%E6%96%87%E4%BB%B6-data0-9)
   - [数据预处理](#%E6%95%B0%E6%8D%AE%E9%A2%84%E5%A4%84%E7%90%86)
     - [`AUTH` `GET` 获得所有操作列表 /preprocess/operations/list/](#auth-get-%E8%8E%B7%E5%BE%97%E6%89%80%E6%9C%89%E6%93%8D%E4%BD%9C%E5%88%97%E8%A1%A8-preprocessoperationslist)
     - [`AUTH` `GET` 获得预处理结果 /preprocess/([0-9]+)/](#auth-get-%E8%8E%B7%E5%BE%97%E9%A2%84%E5%A4%84%E7%90%86%E7%BB%93%E6%9E%9C-preprocess0-9)
@@ -130,8 +130,7 @@
     ],
     "email": [
         "A user is already registered with this e-mail address."
-    ],
-    ...
+    ]
 }
 ```
 
@@ -194,8 +193,7 @@ return：
             "mnist_inference.cpython-36.pyc": "mnist_inference.cpython-36.pyc", 
             "__init__.cpython-36.pyc": "__init__.cpython-36.pyc"
         }
-    }, 
-    ...
+    }
 }
 ```
 csv文件返回为
@@ -217,8 +215,7 @@ csv文件返回为
         "num": "3", 
         "price": "9.8", 
         "owner": "false"
-    },
-    ...
+    }
 ]
 
 ```
@@ -249,8 +246,25 @@ params: {
     op_type: doc / picture / audio
 }
 ```
+
 ```json
-{
+    [
+      {
+        "op_code": 1,
+        "op_name": "图片缩放",
+        "op_type": "picture",
+        "op_params_size": 2,
+        "op_params": [
+            {
+                "param_id": 1,
+                "param_name": "长"
+            },
+            {
+                "param_id": 2,
+                "param_name": "宽"
+            }
+        ]
+      },
     {
         "op_code": 1,
         "op_name": "图片缩放",
@@ -258,17 +272,16 @@ params: {
         "op_params_size": 2,
         "op_params": [
             {
-                "param_id": 1
+                "param_id": 1,
                 "param_name": "长"
             },
             {
-                "param_id": 2
+                "param_id": 2,
                 "param_name": "宽"
-            },
+            }
         ]
-    },
-    ...
-}
+    }
+]
 ```
 
 #### `AUTH` `GET` 获得预处理结果 /preprocess/([0-9]+)/
@@ -317,8 +330,7 @@ csv格式的返回结果为：
                     "num": "3", 
                     "price": "9.8", 
                     "owner": "false"
-                },
-                ...
+                }
             ]
         }
     ]
