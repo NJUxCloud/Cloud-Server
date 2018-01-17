@@ -103,13 +103,9 @@ class Linux(object):
                 print(result)
                 return result
 
-    def sftp_upload_file(self, file, dir_path, file_path,need_unzip):
+    def sftp_upload_file(self,  dir_path, file_path,need_unzip):
         """
         上传文件
-        :param file:
-        :param dir_path:
-        :param file_path:
-        :return:
         """
         try:
             cmd = 'test -d ./' + dir_path + ' || mkdir -p ' + dir_path
@@ -123,7 +119,7 @@ class Linux(object):
     def unzip_file(self, file_path):
         """
         解压文件 unzip
-        :param file_path:
+        :param file_path: 文件目录
         :return:
         """
         unzip_dir_path = file_path.split('.')[0]

@@ -3,6 +3,7 @@ import shutil
 import time
 import traceback
 import os
+import urllib.request
 import zipfile
 
 from idna import unicode
@@ -97,10 +98,10 @@ class DataView(APIView):
         dir_path = 'NJUCloud/' + userid + '/data/' + file_class + '/'
         file_path = dir_path + filename
         self.save_to_local(file=file, dir_path=dir_path, file_path=file_path, need_unzip=need_unzip)
-        self.upload_file(file=file, dir_path=dir_path, file_path=file_path, need_unzip=need_unzip)
-        self.save_to_db(file_type=file_class, file_path=file_path)
+        self.upload_file(dir_path=dir_path, file_path=file_path, need_unzip=need_unzip)
+        self.save_to_db(file_type=file_class, file_path=file_path,need_unzip=need_unzip)
 
-    def save_to_db(self, file_path, file_type):
+    def save_to_db(self, file_path, file_type, need_unzip):
         """
         存储到数据库
         :param user_id:
@@ -108,21 +109,19 @@ class DataView(APIView):
         :param file_type: RawData.DOC, RawData.CODE, ...
         :return:
         """
+        #去掉.zip的后缀
+        if(need_unzip):
+            file_path=file_path.split('.')[0]
         raw_data = RawData(file_path=file_path, file_type=file_type, owner=self.request.user)
         raw_data.save()
 
-    def upload_file(self, file, dir_path, file_path, need_unzip):
+    def upload_file(self, dir_path, file_path, need_unzip):
         """
         上传文件，如果需要解压则最后need_unzip会是true
-        :param file:
-        :param dir_path:
-        :param file_path:
-        :param need_unzip:
-        :return:
         """
         host = Linux()
         host.connect()
-        host.sftp_upload_file(file, dir_path, file_path,need_unzip)
+        host.sftp_upload_file(dir_path, file_path,need_unzip)
         host.close()
 
     def save_to_local(self, file, dir_path, file_path, need_unzip):
@@ -135,7 +134,7 @@ class DataView(APIView):
         :return:
         '''
         try:
-            dir_path=global_settings.LOCAL_STORAGE_PATH +dir_path
+            dir_path=global_settings.LOCAL_STORAGE_PATH +file_path.split('.')[0]
             file_path=global_settings.LOCAL_STORAGE_PATH+file_path
             if not os.path.exists(dir_path):
                 os.makedirs(dir_path)
@@ -156,12 +155,14 @@ class DataView(APIView):
                         with open(output_filename, 'wb') as output_file:
                             shutil.copyfileobj(f.open(fname), output_file)
                 f.close()
+
         except Exception as e:
             print(traceback.print_exc())
             return Response(status=status.HTTP_400_BAD_REQUEST)
 
     def handle_url(self, request):
         """
+        在远程服务器执行命令进行下载
         通过url下载数据集到指定位置
         如果url有多个用;隔离开
         :param request:
@@ -180,10 +181,33 @@ class DataView(APIView):
             command = 'wget -c -P ./' + file_path + ' ' + url
             host.send(cmd=command)
         host.close()
-        self.save_to_db(file_type=file_class, file_path=file_path)
+        self.handle_url_local(urls=urls,file_path=file_path)
+        self.save_to_db(file_type=file_class, file_path=file_path,need_unzip=False)
+
+    def handle_url_local(self,urls,file_path):
+        '''
+        将url文件缓存到本地
+        :param request:
+        :return:
+        '''
+        local_file_path=global_settings.LOCAL_STORAGE_PATH +file_path
+        if not os.path.exists(local_file_path):
+            os.makedirs(local_file_path)
+        for url in urls:
+            try:
+                file_name=local_file_path+'/'+str(url).split('/')[-1]
+                urllib.request.urlretrieve(url,file_name)
+            except Exception :
+                print(traceback.print_exc())
+                print('\tError retrieving the URL:', url)
 
 
 class DataDetail(APIView):
+    # use session
+    authentication_classes = (SessionAuthentication, TokenAuthentication)
+    # use permission, in this case, we use the permission subclass from framework
+    permission_classes = (IsAuthenticated,)
+
     def get(self, request, pk, format=None):
         relative_path=request.GET.get('relative_path')
         return self.get_object(pk=pk, relative_path=relative_path)
@@ -197,7 +221,7 @@ class DataDetail(APIView):
         """
         raw_data = RawData.objects.get(pk=pk)
         if relative_path is not None:
-            userid = str(self.request.user.id)
+            userid = str(raw_data.owner.id)
             # 文件类别(doc, code, audio, picture)
             file_class = raw_data.file_type
             relative_path = 'NJUCloud/' + userid + '/data/' + file_class + '/' +relative_path
@@ -208,7 +232,6 @@ class DataDetail(APIView):
                 file_type = None
         else:
             remote_file_path = raw_data.file_path
-            print(remote_file_path)
             # filename = remote_file_path.split('/')[-1]
             # TODO 本地文件存储路径
             local_file_path = global_settings.LOCAL_STORAGE_PATH + remote_file_path
@@ -223,10 +246,9 @@ class DataDetail(APIView):
                 host.close()
 
         # csv 将csv转换为json
-        if file_type == RawData.DOC:
+        if file_type == RawData.DOC and local_file_path.endswith('csv'):
             parser = Parser()
             json_data = parser.csv_to_json(local_file_path=local_file_path)
-            print(json_data)
             return HttpResponse(json_data, content_type='application/json')
 
         # 单个图片，或单个音频文件，或单个代码文件，直接返回
