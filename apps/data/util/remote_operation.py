@@ -9,6 +9,9 @@ import os
 
 
 # 定义一个类，表示一台远端linux主机
+from CloudServer import global_settings
+
+
 class Linux(object):
     # 通过IP, 用户名，密码，超时时间初始化一个远程Linux主机
     # def __init__(self, ip, username, password, timeout=30):
@@ -100,7 +103,7 @@ class Linux(object):
                 print(result)
                 return result
 
-    def sftp_upload_file(self, file, dir_path, file_path):
+    def sftp_upload_file(self, file, dir_path, file_path,need_unzip):
         """
         上传文件
         :param file:
@@ -111,7 +114,9 @@ class Linux(object):
         try:
             cmd = 'test -d ./' + dir_path + ' || mkdir -p ' + dir_path
             self.send(cmd)
-            self.sftp.putfo(file, file_path)
+            self.sftp.put(global_settings.LOCAL_STORAGE_PATH + file_path, file_path)
+            if(need_unzip):
+                self.unzip_file(file_path)
         except Exception as e:
             print(e)
 

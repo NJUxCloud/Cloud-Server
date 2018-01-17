@@ -1,7 +1,11 @@
 # coding=utf-8
+import shutil
 import time
 import traceback
 import os
+import zipfile
+
+from idna import unicode
 from rest_framework.views import APIView
 from rest_framework.response import Response
 from rest_framework import status
@@ -78,17 +82,6 @@ class DataView(APIView):
 
         return filename
 
-    def save_to_db(self, file_path, file_type):
-        """
-        存储到数据库
-        :param user_id:
-        :param file_path:
-        :param file_type: RawData.DOC, RawData.CODE, ...
-        :return:
-        """
-        raw_data = RawData(file_path=file_path, file_type=file_type, owner=self.request.user)
-        raw_data.save()
-
     def upload_and_save(self, request, need_unzip):
         """
         上传文件并保存到数据库
@@ -103,8 +96,20 @@ class DataView(APIView):
         filename = self.format_name(file.name)
         dir_path = 'NJUCloud/' + userid + '/data/' + file_class + '/'
         file_path = dir_path + filename
+        self.save_to_local(file=file, dir_path=dir_path, file_path=file_path, need_unzip=need_unzip)
         self.upload_file(file=file, dir_path=dir_path, file_path=file_path, need_unzip=need_unzip)
         self.save_to_db(file_type=file_class, file_path=file_path)
+
+    def save_to_db(self, file_path, file_type):
+        """
+        存储到数据库
+        :param user_id:
+        :param file_path:
+        :param file_type: RawData.DOC, RawData.CODE, ...
+        :return:
+        """
+        raw_data = RawData(file_path=file_path, file_type=file_type, owner=self.request.user)
+        raw_data.save()
 
     def upload_file(self, file, dir_path, file_path, need_unzip):
         """
@@ -117,10 +122,43 @@ class DataView(APIView):
         """
         host = Linux()
         host.connect()
-        host.sftp_upload_file(file, dir_path, file_path)
-        if need_unzip:
-            host.unzip_file(file_path)
+        host.sftp_upload_file(file, dir_path, file_path,need_unzip)
         host.close()
+
+    def save_to_local(self, file, dir_path, file_path, need_unzip):
+        '''
+        将文件保存到本地，如果是压缩文件就进行解压缩
+        :param file: 文件
+        :param dir_path: 文件夹目录 NJUCloud/id/data/type/
+        :param file_path: 文件目录 NJUCloud/id/data/type/xxx
+        :param need_unzip: 是否需要解压缩
+        :return:
+        '''
+        try:
+            dir_path=global_settings.LOCAL_STORAGE_PATH +dir_path
+            file_path=global_settings.LOCAL_STORAGE_PATH+file_path
+            if not os.path.exists(dir_path):
+                os.makedirs(dir_path)
+            with open(file_path, 'wb+') as destination:
+                for chunk in file.chunks():
+                    destination.write(chunk)
+            if need_unzip:
+                f = zipfile.ZipFile(file_path, 'r')
+                for fname in f.namelist():
+                    #解决文件名中文乱码问题
+                    filename = fname.encode('cp437').decode('utf8')
+                    output_filename = os.path.join(dir_path, filename)
+                    output_file_dir = os.path.dirname(output_filename)
+                    if(filename.endswith('/')):
+                        if not os.path.exists(output_file_dir):
+                            os.makedirs(output_file_dir)
+                    else:
+                        with open(output_filename, 'wb') as output_file:
+                            shutil.copyfileobj(f.open(fname), output_file)
+                f.close()
+        except Exception as e:
+            print(traceback.print_exc())
+            return Response(status=status.HTTP_400_BAD_REQUEST)
 
     def handle_url(self, request):
         """
@@ -147,28 +185,33 @@ class DataView(APIView):
 
 class DataDetail(APIView):
     def get(self, request, pk, format=None):
-        relative_path = request.GET.get('relative_path')
+        relative_path=request.GET.get('relative_path')
         return self.get_object(pk=pk, relative_path=relative_path)
 
-    def get_object(self, pk, relative_path=None):
+    def get_object(self,pk, relative_path=None):
         """
         获得一份数据全部内容
         :param relative_path: 目录中文件的相对路径
         :param pk: 数据文件id
         :return:
         """
+        raw_data = RawData.objects.get(pk=pk)
         if relative_path is not None:
+            userid = str(self.request.user.id)
+            # 文件类别(doc, code, audio, picture)
+            file_class = raw_data.file_type
+            relative_path = 'NJUCloud/' + userid + '/data/' + file_class + '/' +relative_path
             local_file_path = global_settings.LOCAL_STORAGE_PATH + relative_path
             if local_file_path.endswith('.csv'):
                 file_type = RawData.DOC
             else:
                 file_type = None
         else:
-            raw_data = RawData.objects.get(pk=pk)
             remote_file_path = raw_data.file_path
-            filename = remote_file_path.split('/')[-1]
+            print(remote_file_path)
+            # filename = remote_file_path.split('/')[-1]
             # TODO 本地文件存储路径
-            local_file_path = global_settings.LOCAL_STORAGE_PATH + filename
+            local_file_path = global_settings.LOCAL_STORAGE_PATH + remote_file_path
             file_type = raw_data.file_type
 
             # 先判断在本地是否存在这一份数据的缓存
