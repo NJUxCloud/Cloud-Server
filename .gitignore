@@ -4,4 +4,5 @@ djangoENV/*
 
 *.pyc
 CloudServer/__pycache__/*
+mnist/*
 
