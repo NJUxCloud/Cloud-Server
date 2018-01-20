@@ -9,21 +9,19 @@ from rest_framework.views import APIView
 
 from apps.preprocess.models import Preprocess
 from apps.preprocess.serializers import PreprocessSerializer
+from apps.preprocess import preprocess
+import json
 
 
 class PreprocessView(APIView):
     # use session
-    authentication_classes = (SessionAuthentication, TokenAuthentication)
+    # authentication_classes = (SessionAuthentication, TokenAuthentication)
     # use permission, in this case, we use the permission subclass from framework
-    permission_classes = (IsAuthenticated,)
+    # permission_classes = (IsAuthenticated,)
 
     def post(self, request):
-
-        return Response(status=status.HTTP_200_OK)
-
-    def get(self, request, format=None):
         '''
-        获取预处理操作类型
+         获取预处理操作类型
         '''
 
         """
@@ -32,7 +30,7 @@ class PreprocessView(APIView):
         request.data 传入的json:{
             type:{str} 说明此操作的类型 init:查询第一层预处理  search:查询某个预处理函数  call:调用某个预处理函数
             func:{str} 函数名称 (init 无需此项)
-            param:{dict} 调用函数所需要的参数 (init和search 无需此项)
+            param:{dict} 调用函数所需要的参数 (init 无需此项)
         }
 
         返回:
@@ -66,10 +64,11 @@ class PreprocessView(APIView):
         # type=request.GET.get('type')
         # serializer=PreprocessSerializer(self.get_object(type),many=True)
         param = request.data
+        print(request.data)
         back_data = {}
-        obj = __import__('process')
+        obj = preprocess
         if param['type'] == 'init':
-            func = getattr(obj, param['init'])
+            func = getattr(obj, 'init')
             back_data = func()
         elif param['type'] == 'search':
             if hasattr(obj, param['func']):
@@ -80,12 +79,19 @@ class PreprocessView(APIView):
 
         elif param['type'] == 'call':
             if hasattr(obj, param['func']):
+
                 func = getattr(obj, param['func'])
-                back_data = func(**param['param'])
+                p = json.loads(param['param'])
+                print(p)
+                back_data = func(**p)
             else:
                 back_data = {"error:""no such function"}
 
         return Response(back_data, status=status.HTTP_200_OK)
+
+    def get(self, request, format=None):
+
+        return Response(status=status.HTTP_200_OK)
 
     def get_object(self, type):
         try:
