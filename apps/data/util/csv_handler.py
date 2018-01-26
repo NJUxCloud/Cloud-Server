@@ -19,3 +19,7 @@ class Parser:
 
     def write_csv(self, file_data):
         pass
+
+
+# parser = Parser()
+# print(parser.csv_to_json(local_file_path='/Users/keenan/Downloads/online_orders_20180105063310.csv'))
