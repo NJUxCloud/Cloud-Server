@@ -104,10 +104,6 @@ def crop() -> False:
                 'func': 'resize_image_with_crop_or_pad',
                 'name': '裁剪填充'
             },
-            {
-                'func': 'random_crop',
-                'name': '随机裁剪'
-            }
         ]
     }
 
@@ -297,21 +293,23 @@ def resize_image_with_crop_or_pad(dir: ("路径", "str", None, None), target_hei
     :param overlap:
     :return:
     """
-    pass
+    raw_image = tf.gfile.FastGFile(name=dir, mode='rb').read()
 
+    with tf.Session as sess:
+        img_data = tf.image.decode_png(raw_image)
+        height, width, channels = sess.run(img_data).shape
+        target_height = height * (target_height_percent / 100.00)
+        target_width = width * (target_width_percent / 100.00)
 
-def random_crop(dir: ("路径", "str", None, None), target_height_percent: ("目标百分比长度", "float", 0, 100),
-                target_width_percent: ("目标百分比宽度", "float", 0, 100),
-                overlap: ("是否覆盖原数据", "bool", None, None)) -> True:
-    """
-    随即裁剪
-    :param dir:
-    :param target_height_percent:
-    :param target_width_percent:
-    :param overlap:
-    :return:
-    """
-    pass
+        adjusted = tf.image.resize_image_with_crop_or_pad(image=img_data, target_height=target_height,
+                                                          target_width=target_width)
+        new_img = np.asarray(adjusted.eval(), dtype='uint8')
+        if overlap:
+            save_image(dir=dir, image=new_img)
+        else:
+            save_image(dir=copied_name(dir), image=new_img)
+
+        sess.close()
 
 
 def flip_up_down(dir: ("路径", "str", None, None), overlap: ("是否覆盖原数据", "bool", None, None)) -> True:
@@ -321,7 +319,17 @@ def flip_up_down(dir: ("路径", "str", None, None), overlap: ("是否覆盖原�
     :param overlap:
     :return:
     """
-    pass
+    raw_image = tf.gfile.FastGFile(name=dir, mode='rb').read()
+    with tf.Session as sess:
+        img_data = tf.image.decode_png(raw_image)
+        adjusted = tf.image.flip_up_down(image=img_data)
+        new_img = np.asarray(adjusted.eval(), dtype='uint8')
+        if overlap:
+            save_image(dir=dir, image=new_img)
+        else:
+            save_image(dir=copied_name(dir), image=new_img)
+
+        sess.close()
 
 
 def flip_left_right(dir: ("路径", "str", None, None), overlap: ("是否覆盖原数据", "bool", None, None)) -> True:
@@ -331,7 +339,17 @@ def flip_left_right(dir: ("路径", "str", None, None), overlap: ("是否覆盖�
     :param overlap:
     :return:
     """
-    pass
+    raw_image = tf.gfile.FastGFile(name=dir, mode='rb').read()
+    with tf.Session as sess:
+        img_data = tf.image.decode_png(raw_image)
+        adjusted = tf.image.flip_left_right(image=img_data)
+        new_img = np.asarray(adjusted.eval(), dtype='uint8')
+        if overlap:
+            save_image(dir=dir, image=new_img)
+        else:
+            save_image(dir=copied_name(dir), image=new_img)
+
+        sess.close()
 
 
 def transpose_image(dir: ("路径", "str", None, None), overlap: ("是否覆盖原数据", "bool", None, None)) -> True:
@@ -341,46 +359,147 @@ def transpose_image(dir: ("路径", "str", None, None), overlap: ("是否覆盖�
     :param overlap:
     :return:
     """
-    pass
+    raw_image = tf.gfile.FastGFile(name=dir, mode='rb').read()
+    with tf.Session as sess:
+        img_data = tf.image.decode_png(raw_image)
+        adjusted = tf.image.transpose_image(image=img_data)
+        new_img = np.asarray(adjusted.eval(), dtype='uint8')
+        if overlap:
+            save_image(dir=dir, image=new_img)
+        else:
+            save_image(dir=copied_name(dir), image=new_img)
+
+        sess.close()
 
 
-def adjust_brightness(dir: ("路径", "str", None, None), overlap: ("是否覆盖原数据", "bool", None, None)) -> True:
+def adjust_brightness(dir: ("路径", "str", None, None), delta: ("变化值", "float", 0, 1),
+                      overlap: ("是否覆盖原数据", "bool", None, None)) -> True:
     """
     调整亮度
     :param dir:
     :param overlap:
     :return:
     """
+    raw_image = tf.gfile.FastGFile(name=dir, mode='rb').read()
+    with tf.Session as sess:
+        img_data = tf.image.decode_png(raw_image)
+        adjusted = tf.image.adjust_brightness(image=img_data, delta=delta)
+        new_img = np.asarray(adjusted.eval(), dtype='uint8')
+        if overlap:
+            save_image(dir=dir, image=new_img)
+        else:
+            save_image(dir=copied_name(dir), image=new_img)
+
+        sess.close()
     pass
 
 
-def random_brightness(dir: ("路径", "str", None, None), overlap: ("是否覆盖原数据", "bool", None, None)) -> True:
-    pass
+def random_brightness(dir: ("路径", "str", None, None), max_delta: ("最大变化值", "float", 0, None),
+                      overlap: ("是否覆盖原数据", "bool", None, None)) -> True:
+    raw_image = tf.gfile.FastGFile(name=dir, mode='rb').read()
+    with tf.Session as sess:
+        img_data = tf.image.decode_png(raw_image)
+        adjusted = tf.image.random_brightness(image=img_data, max_delta=max_delta)
+        new_img = np.asarray(adjusted.eval(), dtype='uint8')
+        if overlap:
+            save_image(dir=dir, image=new_img)
+        else:
+            save_image(dir=copied_name(dir), image=new_img)
+        sess.close()
 
 
-def adjust_contrast(dir: ("路径", "str", None, None), overlap: ("是否覆盖原数据", "bool", None, None)) -> True:
-    pass
+def adjust_contrast(dir: ("路径", "str", None, None), contrast_factor: ("对比度因子", "float", None, None),
+                    overlap: ("是否覆盖原数据", "bool", None, None)) -> True:
+    raw_image = tf.gfile.FastGFile(name=dir, mode='rb').read()
+    with tf.Session as sess:
+        img_data = tf.image.decode_png(raw_image)
+        adjusted = tf.image.adjust_contrast(image=img_data, contrast_factor=contrast_factor)
+        new_img = np.asarray(adjusted.eval(), dtype='uint8')
+        if overlap:
+            save_image(dir=dir, image=new_img)
+        else:
+            save_image(dir=copied_name(dir), image=new_img)
+        sess.close()
 
 
-def random_contrast(dir: ("路径", "str", None, None), overlap: ("是否覆盖原数据", "bool", None, None)) -> True:
-    pass
+def random_contrast(dir: ("路径", "str", None, None), lower: ("对比度因子最小值", "float", None, None),
+                    upper: ("对比度因子最大值", "float", None, None), overlap: ("是否覆盖原数据", "bool", None, None)) -> True:
+    raw_image = tf.gfile.FastGFile(name=dir, mode='rb').read()
+    with tf.Session as sess:
+        img_data = tf.image.decode_png(raw_image)
+        adjusted = tf.image.random_contrast(image=img_data, lower=lower, upper=upper)
+        new_img = np.asarray(adjusted.eval(), dtype='uint8')
+        if overlap:
+            save_image(dir=dir, image=new_img)
+        else:
+            save_image(dir=copied_name(dir), image=new_img)
+        sess.close()
 
 
-def adjust_hue(dir: ("路径", "str", None, None), overlap: ("是否覆盖原数据", "bool", None, None)) -> True:
-    pass
+def adjust_hue(dir: ("路径", "str", None, None), delta: ("变化值", "float", -1, 1),
+               overlap: ("是否覆盖原数据", "bool", None, None)) -> True:
+    raw_image = tf.gfile.FastGFile(name=dir, mode='rb').read()
+    with tf.Session as sess:
+        img_data = tf.image.decode_png(raw_image)
+        adjusted = tf.image.adjust_hue(image=img_data, delta=delta)
+        new_img = np.asarray(adjusted.eval(), dtype='uint8')
+        if overlap:
+            save_image(dir=dir, image=new_img)
+        else:
+            save_image(dir=copied_name(dir), image=new_img)
+        sess.close()
 
 
-def random_hue(dir: ("路径", "str", None, None), overlap: ("是否覆盖原数据", "bool", None, None)) -> True:
-    pass
+def random_hue(dir: ("路径", "str", None, None), max_delta: ("最大变化值", "float", 0, 0.5,),
+               overlap: ("是否覆盖原数据", "bool", None, None)) -> True:
+    raw_image = tf.gfile.FastGFile(name=dir, mode='rb').read()
+    with tf.Session as sess:
+        img_data = tf.image.decode_png(raw_image)
+        adjusted = tf.image.random_hue(image=img_data, max_delta=max_delta)
+        new_img = np.asarray(adjusted.eval(), dtype='uint8')
+        if overlap:
+            save_image(dir=dir, image=new_img)
+        else:
+            save_image(dir=copied_name(dir), image=new_img)
+        sess.close()
 
 
-def adjust_saturation(dir: ("路径", "str", None, None), overlap: ("是否覆盖原数据", "bool", None, None)) -> True:
-    pass
+def adjust_saturation(dir: ("路径", "str", None, None), saturation_factor: ("饱和度因子", "float", None, None),
+                      overlap: ("是否覆盖原数据", "bool", None, None)) -> True:
+    raw_image = tf.gfile.FastGFile(name=dir, mode='rb').read()
+    with tf.Session as sess:
+        img_data = tf.image.decode_png(raw_image)
+        adjusted = tf.image.adjust_saturation(image=img_data, saturation_factor=saturation_factor)
+        new_img = np.asarray(adjusted.eval(), dtype='uint8')
+        if overlap:
+            save_image(dir=dir, image=new_img)
+        else:
+            save_image(dir=copied_name(dir), image=new_img)
+        sess.close()
 
 
-def random_saturation(dir: ("路径", "str", None, None), overlap: ("是否覆盖原数据", "bool", None, None)) -> True:
-    pass
+def random_saturation(dir: ("路径", "str", None, None), lower: ("饱和度因子最小值", "float", None, None),
+                      upper: ("饱和度因子最大值", "float", None, None), overlap: ("是否覆盖原数据", "bool", None, None)) -> True:
+    raw_image = tf.gfile.FastGFile(name=dir, mode='rb').read()
+    with tf.Session as sess:
+        img_data = tf.image.decode_png(raw_image)
+        adjusted = tf.image.random_saturation(image=img_data, lower=lower, upper=upper)
+        new_img = np.asarray(adjusted.eval(), dtype='uint8')
+        if overlap:
+            save_image(dir=dir, image=new_img)
+        else:
+            save_image(dir=copied_name(dir), image=new_img)
+        sess.close()
 
 
 def standardize(dir: ("路径", "str", None, None), overlap: ("是否覆盖原数据", "bool", None, None)) -> True:
-    pass
+    raw_image = tf.gfile.FastGFile(name=dir, mode='rb').read()
+    with tf.Session as sess:
+        img_data = tf.image.decode_png(raw_image)
+        adjusted = tf.image.per_image_standardization(image=img_data)
+        new_img = np.asarray(adjusted.eval(), dtype='uint8')
+        if overlap:
+            save_image(dir=dir, image=new_img)
+        else:
+            save_image(dir=copied_name(dir), image=new_img)
+        sess.close()
