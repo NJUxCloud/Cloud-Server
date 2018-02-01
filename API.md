@@ -1,5 +1,7 @@
 <!-- START doctoc generated TOC please keep comment here to allow auto update -->
 <!-- DON'T EDIT THIS SECTION, INSTEAD RE-RUN doctoc TO UPDATE -->
+<!-- sudo npm install -g doctoc-->
+<!-- doctoc ./API.md -->
 
 - [API文档](#api%E6%96%87%E6%A1%A3)
   - [注](#%E6%B3%A8)
@@ -239,101 +241,179 @@ csv文件返回为
 -------
 
 ### 数据预处理
-#### `AUTH` `GET` 获得所有操作列表 /preprocess/operations/list/
-```text
-params: {
-    # 要处理的数据类型
-    op_type: doc / picture / audio
-}
-```
-
-```json
-    [
-      {
-        "op_code": 1,
-        "op_name": "图片缩放",
-        "op_type": "picture",
-        "op_params_size": 2,
-        "op_params": [
-            {
-                "param_id": 1,
-                "param_name": "长"
-            },
-            {
-                "param_id": 2,
-                "param_name": "宽"
-            }
-        ]
-      },
-    {
-        "op_code": 1,
-        "op_name": "图片缩放",
-        "op_type": "picture",
-        "op_params_size": 2,
-        "op_params": [
-            {
-                "param_id": 1,
-                "param_name": "长"
-            },
-            {
-                "param_id": 2,
-                "param_name": "宽"
-            }
-        ]
-    }
-]
-```
-
-#### `AUTH` `GET` 获得预处理结果 /preprocess/([0-9]+)/
-```text
-params: {
-    #  操作类型码
-    op_code: 3
-    # 操作类型参数个数
-    op_params_size: 2
-    # 操作参数，根据个数命名
-    op_param1: 90
-    op_param2: 120
-    ...
-}
-```
-图片或音频的返回结果为：
+#### `AUTH` `POST` 获得所有操作列表 /preprocess/
+POST 传入的json格式:
 
 ```json
 {
-    "message": "success",
-    "result_file_relative_path": "myfile/h.png"
+    "type":{str} # 说明此操作的类型 "init":查询第一层预处理;"search":查询某个预处理函数;"call":调用某个预处理函数
+    "func":{str} #函数名称 (init 无需此项)
+    "param":{dict} #调用函数所需要的参数 (init 无需此项)
 }
 ```
-csv格式的返回结果为：
+
+返回值:
+对于search来说 本次操作为查询该函数需要哪些参数
+返回json说明:
+        
+```json
+{
+    "参数字段名":(显示在界面的中文名,参数类型(基础类型),下限,上限)
+    "参数字段名":(显示在界面的中文名,参数类型(基础类型),下限,上限)
+    "return":{boolean} 该函数是否为最终函数(最终函数是真正执行处理的函数)
+}
+```
+
+
+对于init 或 call来说:
+1. 该函数是最终函数:
+        {返回值是该函数返回值}
+2.  该函数不是最终函数:
 
 ```json
 {
-    "message": "success",
-    "result_file_relative_path": "myfile/abc.csv",
-    "result": [
+    “functions”:[
         {
-            "op_name": "标准归一化",
-            "op_result":  [
-                {
-                    "id": "1", 
-                    "name": "Java", 
-                    "add_time": "2017-12-16", 
-                    "num": "2", 
-                    "price": "9", 
-                    "owner": "false"
-                }, 
-                {
-                    "id": "2", 
-                    "name": "Python", 
-                    "add_time": "2017-12-16", 
-                    "num": "3", 
-                    "price": "9.8", 
-                    "owner": "false"
-                }
-            ]
+            "func":{str}预处理方法函数名
+            "name":{str}预处理方在界面显示的名字
+        },
+        {
+            "func":{str}预处理方法函数名
+            "name":{str}预处理方在界面现实的名字
+        }
+}
+```      
+
+示例：
+
+```json
+POST:
+{
+	"type": "init",
+	"func": "",
+	"param":{}
+}
+
+return:
+{
+    "functions": [
+        {
+            "func": "resize",
+            "name": "图像缩放"
+        },
+        {
+            "func": "crop",
+            "name": "图像裁剪"
+        },
+        {
+            "func": "flip",
+            "name": "图像翻转"
+        },
+        {
+            "func": "adjust",
+            "name": "图像调整"
         }
     ]
+}
+{
+    "error": "no such function"
+}
+```       
+
+```json
+POST:
+{
+	"type": "call",
+	"func": "resize",
+	"param":{}
+}
+
+return:
+{
+    "functions": [
+        {
+            "func": "resize_nearest",
+            "name": "邻域法"
+        },
+        {
+            "func": "resize_bicubic",
+            "name": "双三次插值法"
+        },
+        {
+            "func": "resize_bilinear",
+            "name": "双线性插值法"
+        },
+        {
+            "func": "resize_area",
+            "name": "面积插值法"
+        }
+    ]
+}
+{
+    "error": "no such function"
+}
+```  
+
+```json
+POST:
+{
+	"type": "search",
+	"func": "resize_nearest",
+	"param":{}
+}
+
+return:
+{
+    "dir": [
+        "路径",
+        "str",
+        null,
+        null
+    ],
+    "new_x": [
+        "长度",
+        "float",
+        150,
+        500
+    ],
+    "new_y": [
+        "宽度",
+        "float",
+        150,
+        500
+    ],
+    "overlap": [
+        "是否覆盖原数据",
+        "bool",
+        null,
+        null
+    ],
+    "return": true
+}
+{
+    "error": "no such function"
+}
+```
+
+```json
+POST:
+{
+	"type": "call",
+	"func": "resize_nearest",
+	"param":{
+		"dir":"/Users/keenan/Downloads/p2496930348.jpg",
+		"new_x":200,
+		"new_y":300,
+		"overlap":"false"
+	}
+}
+
+return:
+{
+    "success": "success"
+}
+{
+    "error": "shdndndkhsdkjfhkjshfs"
 }
 ```
 
