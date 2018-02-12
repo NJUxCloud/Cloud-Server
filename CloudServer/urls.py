@@ -13,6 +13,7 @@ Including another URLconf
     1. Import the include() function: from django.urls import include, path
     2. Add a URL to urlpatterns:  path('blog/', include('blog.urls'))
 """
+from django.conf.urls import url
 from django.contrib import admin
 from django.urls import include
 from django.urls import path
@@ -23,6 +24,7 @@ urlpatterns = [
     # path to demo  demoApp
     # re_path(r'^', include('demo.urls')),
     # path to auth and its interface 登录用框架
+    url(r'^', include('django.contrib.auth.urls')),
     re_path(r'^rest-auth/', include('rest_auth.urls')),
     # path to registration and its interface 注册用框架
     re_path(r'^rest-auth/registration/', include('rest_auth.registration.urls')),
@@ -30,4 +32,8 @@ urlpatterns = [
     re_path(r'^data/', include('apps.data.urls')),
     # 预处理部分的路径
     re_path(r'^preprocess/', include('apps.preprocess.urls')),
+    # 代码构造部分的路径
+    re_path(r'^construct/', include('apps.construction.urls')),
+    # 运行时供master和客户端调用的接口
+    re_path(r'^runtime/', include('apps.runtime.urls'))
 ]

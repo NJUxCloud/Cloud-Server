@@ -191,7 +191,7 @@ def resize_nearest(dir: ("路径", "str", None, None), new_x: ("长度", "float"
         raise WrongValueException(message='参数数据大小不在规定范围150~500内！')
 
     raw_image = tf.gfile.FastGFile(name=dir, mode='rb').read()
-    with tf.Session as sess:
+    with tf.Session() as sess:
         img_data = tf.image.decode_png(raw_image)
         resized = tf.image.resize_images(images=img_data, size=[new_x, new_y],
                                          method=tf.image.ResizeMethod.NEAREST_NEIGHBOR)
@@ -202,7 +202,8 @@ def resize_nearest(dir: ("路径", "str", None, None), new_x: ("长度", "float"
         else:
             save_image(dir=copied_name(dir), image=new_img)
 
-        sess.close()
+    sess.close()
+    return {"success": "success"}
 
 
 def resize_bicubic(dir: ("路径", "str", None, None), new_x: ("长度", "float", 150, 500),

@@ -73,8 +73,9 @@ class PreprocessView(APIView):
             if hasattr(obj, param['func']):
 
                 func = getattr(obj, param['func'])
-                p = json.loads(param['param'])
-                print(p)
+                # print(param['param'])
+                p = json.loads(json.dumps(param['param']))
+                # print(p)
                 try:
                     back_data = func(**p)
                 except WrongValueException as e:
