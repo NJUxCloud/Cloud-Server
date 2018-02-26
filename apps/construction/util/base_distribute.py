@@ -27,13 +27,9 @@ flags.DEFINE_string(flag_name="worker_hosts", default_value="", docstring="Comma
 # Flags for defining the tf.train.Server
 flags.DEFINE_string(flag_name="job_name", default_value="", docstring="One of 'ps', 'worker'")
 flags.DEFINE_integer(flag_name="task_index", default_value=0, docstring="Index of task within the job")
-# 迭代数
-flags.DEFINE_integer(flag_name="iter", default_value=2000, docstring="iter number")
-# 学习率
-flags.DEFINE_float(flag_name="learning_rate", default_value=0.1, docstring="learning rate")
-# 损失函数
-flags.DEFINE_string(flag_name="loss", default_value="平方差函数", docstring="loss function")
 
+# 传入的训练配置参数
+flags.DEFINE_string(flag_name="config", default_value="", docstring="train_config")
 
 # Join two (or more) paths.
 def join(path, *paths):
@@ -82,6 +78,17 @@ def join(path, *paths):
 def is_already_save(save_path):
     return os.path.exists(save_path + ".meta")
 
+def to_int_array(str):
+    '''
+    '1,1,1,1' 变成[1,1,1,1]
+    字符串变成数组
+    :param str:
+    :return:
+    '''
+    arr = str.split(',')
+    arr = np.array(arr).astype(np.int).tolist()
+    return arr
+
 
 def weight_variable(shape):
     initial = tf.truncated_normal(shape, stddev=0.1)
@@ -100,6 +107,36 @@ def conv2d(x, W):
 def max_pool_2x2(x):
     return tf.nn.max_pool(x, ksize=[1, 2, 2, 1], strides=[1, 2, 2, 1], padding='SAME')
 
+def active(type,features):
+    '''
+    选择激活函数
+    :param type:
+    :param features:
+    :return:
+    '''
+    if(type=="ReLU函数"):
+        return tf.nn.relu(features)
+    elif(type=="Sigmoid函数"):
+        return tf.nn.sigmoid(features)
+    return tf.nn.relu(features)
+
+def normalize(x,shift,scale,epsilon):
+    '''
+    归一化处理
+    :param x:
+    :param shift:
+    :param scale:
+    :param epsilon:
+    :return:
+    '''
+    batch_mean, batch_var = tf.nn.moments(x, [0, 1, 2], keep_dims=True)
+    shift = to_int_array(shift)
+    scale = to_int_array(scale)
+    epsilon = float('e'+epsilon)
+    return tf.nn.batch_normalization(x, batch_mean, batch_var, shift, scale, epsilon)
+
+def connect_layer(x,w,b):
+    return tf.nn.relu(tf.matmul(x, w) + b)
 
 def save_image(image, path):
     with open(path, "wb") as file:
@@ -123,8 +160,39 @@ def get_model(path, name):
 
     return maxstep
 
+def loss_function(name,logits,labels):
+    '''
+    定义损失函数
+    :param name:
+    :param logits:
+    :param labels:
+    :return:
+    '''
+    if(name=="平方差函数"):
+        return
+    elif(name=="交叉熵函数"):
+        return  tf.reduce_mean(tf.nn.softmax_cross_entropy_with_logits(logits, labels))
 
-def net(x, keep_prob):
+def optimizer_function(optimizer_name,learning_rate):
+    '''
+    定义优化算法
+    :param optimizer_name:
+    :param learning_rate:
+    :return:
+    '''
+    if(optimizer_name=="GradientDescentOptimizer"):
+        return tf.train.GradientDescentOptimizer(learning_rate)
+    else:
+        return tf.train.AdagradOptimizer(learning_rate)
+
+
+def default_net(x, keep_prob):
+    '''
+    默认网络
+    :param x:
+    :param keep_prob:
+    :return:
+    '''
     W_conv1 = weight_variable([5, 5, 1, 32])
     b_conv1 = bias_variable([32])
     x_image = tf.reshape(x, [-1, 28, 28, 1])
@@ -153,6 +221,78 @@ def net(x, keep_prob):
     y_conv = tf.matmul(h_fc1_drop, W_fc2) + b_fc2
     return y_conv
 
+def cnn(net_config,x):
+    '''
+    构造cnn网络
+    :param net_config:
+    :param x:
+    :return:
+    '''
+    middle_layer=net_config["middle_layer"]
+    hidden=[]   #用于保存每一层调用对应方法的结果，作为下一层的输入
+    for every_layer in middle_layer:
+        w=weight_variable(to_int_array(every_layer["W"]))
+        b=bias_variable(to_int_array(every_layer["b"]))
+        #加入初始的一个值
+        hidden.append( tf.reshape(x, [-1, 28, 28, 1]))
+        #每一层由好几个小层组成
+        inner_layer=every_layer["inner_layer"]
+        for every_inner in inner_layer:
+            layer_name=every_inner["layer"]
+            if(layer_name=="卷积层"):
+                hidden.append(conv2d(hidden[len(hidden)-1], w)+b)
+            elif(layer_name=="池化层"):
+                hidden.append(max_pool_2x2(hidden[len(hidden)-1]))
+            elif(layer_name=="激活层"):
+                hidden.append(active(every_inner["激活函数"],hidden[len(hidden)-1]))
+            elif(layer_name=="全连接层"):
+                hidden.append(connect_layer(hidden[len(hidden)-1],w,b))
+            elif(layer_name=="归一化层"):
+                hidden.append(normalize(hidden[len(hidden)-1],every_inner["shift"],every_inner["scale"],every_inner["epsilon"]))
+
+    #处理输出层
+    output_layer=net_config["output_layer"]
+    w = weight_variable(to_int_array(output_layer["W"]))
+    b = bias_variable(to_int_array(output_layer["b"]))
+    y_conv = tf.matmul(hidden[len(hidden)-1], w) + b
+    return y_conv
+
+
+def general_net(net_config,x):
+    '''
+    构造传统神经网络
+    :param net_config:
+    :param x:
+    :return:
+    '''
+    #处理隐藏层
+    hidden_layer=net_config["hidden_layer"]
+    hidden = []  # 用于保存每一层调用对应方法的结果，作为下一层的输入
+    for every_layer in hidden_layer:
+        w = weight_variable(to_int_array(every_layer["W"]))
+        b = bias_variable(to_int_array(every_layer["b"]))
+
+    # 处理输出层
+    output_layer = net_config["output_layer"]
+    w = weight_variable(to_int_array(output_layer["W"]))
+    b = bias_variable(to_int_array(output_layer["b"]))
+    #todo:传统的如何处理？
+
+
+def get_net(net_type,net_config,x,keep_prob):
+    '''
+    根据神经网络类型和模型设置获取网络
+    :param net_type:
+    :param net_config:
+    :param x:
+    :param keep_prob:
+    :return:
+    '''
+    if(net_type=="CNN"):
+        return cnn(net_config,x)
+    elif(net_type=="传统神经网络"):
+        return general_net(net_config,x)
+    return default_net(x,keep_prob)
 
 def train():
     """
@@ -164,8 +304,13 @@ def train():
     pre = FLAGS.save_path
     save_path = FLAGS.save_path
     save_path = join(save_path, model_name + ".ckpt")
-    iter = FLAGS.iter
-    learning_rate=FLAGS.learning_rate
+    config=FLAGS.config
+    iter = int(config["iter"])    # 迭代数
+    learning_rate=float(config["learning_rate"])  # 学习率
+    loss_name=config["loss_name"]   # 损失函数
+    optimizer_name=config["optimizer_name"] # 优化算法
+    net_type=config["net_type"] # 神经网络（传统还是cnn）
+    net_config=config["net_config"]  # 神经网络参数
 
     # assign distribute information
     ps_hosts = FLAGS.ps_hosts.split(",")
@@ -199,13 +344,14 @@ def train():
             # Define loss and optimizer
             keep_prob = tf.placeholder(tf.float32)
             y_ = tf.placeholder(tf.float32, [None, 10])
-            y_conv = net(x, keep_prob)
-            loss = tf.reduce_mean(tf.nn.softmax_cross_entropy_with_logits(logits=y_conv, labels=y_))
+            y_conv = get_net(net_type,net_config,x, keep_prob)
+            loss = loss_function(loss_name,y_conv,y_)
 
             global_step = tf.Variable(0)
             # 训练操作
             # 优化算法
-            train_op = tf.train.AdagradOptimizer(learning_rate).minimize(
+            tf.train.GradientDescentOptimizer()
+            train_op = optimizer_function(optimizer_name,learning_rate).minimize(
                 loss, global_step=global_step)
             # 保存器
             saver = tf.train.Saver()
@@ -259,6 +405,9 @@ def inference(filename):
     :param filename:
     :return:
     """
+    config = FLAGS.config
+    net_type = config["net_type"]  # 神经网络（传统还是cnn）
+    net_config = config["net_config"]  # 神经网络参数
     model_name = FLAGS.model_name
     save_path = FLAGS.save_path
     save_path = join(save_path, model_name + ".ckpt-"
@@ -274,7 +423,7 @@ def inference(filename):
     # print(np.array([arr]).shape)
     x = tf.placeholder(tf.float32, [None, 784])
     keep_prob = tf.placeholder(tf.float32)
-    predict = net(x, keep_prob)
+    predict = get_net(net_type,net_config,x, keep_prob)
     result = tf.argmax(predict, 1)
     saver = tf.train.Saver()
 
