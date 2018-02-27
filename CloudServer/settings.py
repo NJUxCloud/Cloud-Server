@@ -24,8 +24,8 @@ SECRET_KEY = '$f=qcg_d0nr=fvj4rp95^-r@5tqqd)n!lzb12=de6%@zdk0j&w'
 # SECURITY WARNING: don't run with debug turned on in production!
 DEBUG = True
 
+# ALLOWED_HOSTS = ['127.0.0.1', 'localhost']
 ALLOWED_HOSTS = []
-
 # Application definition
 
 INSTALLED_APPS = [
@@ -44,7 +44,8 @@ INSTALLED_APPS = [
     'rest_auth.registration',
     'demo.apps.DemoConfig',
     'apps.data.apps.DataConfig',
-    'apps.preprocess.apps.PreprocessConfig'
+    'apps.preprocess.apps.PreprocessConfig',
+    'corsheaders'
 ]
 
 SITE_ID = 1
@@ -57,7 +58,28 @@ MIDDLEWARE = [
     'django.contrib.auth.middleware.AuthenticationMiddleware',
     'django.contrib.messages.middleware.MessageMiddleware',
     'django.middleware.clickjacking.XFrameOptionsMiddleware',
+    'corsheaders.middleware.CorsMiddleware',
 ]
+
+CORS_ORIGIN_WHITELIST = ()
+
+CORS_ALLOW_METHODS = (
+    'GET',
+    'POST',
+    'PUT',
+    'PATCH',
+    'DELETE',
+    'OPTIONS'
+)
+
+CORS_ALLOW_HEADERS = (
+    'x-requested-with',
+    'content-type',
+    'accept',
+    'origin',
+    'authorization',
+    'x-csrftoken'
+)
 
 ROOT_URLCONF = 'CloudServer.urls'
 
@@ -93,7 +115,7 @@ DATABASES = {
     }
 }
 
-EMAIL_BACKEND = 'django.core.mail.backends.console.EmailBackend'
+# EMAIL_BACKEND = 'django.core.mail.backends.console.EmailBackend'
 
 # Password validation
 # https://docs.djangoproject.com/en/2.0/ref/settings/#auth-password-validators
@@ -139,3 +161,10 @@ REST_FRAMEWORK = {
     ),
     'TEST_REQUEST_DEFAULT_FORMAT': 'json'
 }
+
+EMAIL_USE_SSL = True
+EMAIL_HOST = 'smtp.qq.com'
+EMAIL_PORT = 465
+EMAIL_HOST_USER = 'zhouqh723@qq.com'
+EMAIL_HOST_PASSWORD = 'wzpwgrancmivbejc'  # 密码
+DEFAULT_FROM_EMAIL = EMAIL_HOST_USER

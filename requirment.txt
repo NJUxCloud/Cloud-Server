@@ -14,4 +14,5 @@ NumPy>= 1.8.2
 SciPy>= 0.13.3
 scikit-learn
 pillow
-
+pandas
+django-cors-middleware
