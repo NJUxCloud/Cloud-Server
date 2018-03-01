@@ -31,7 +31,7 @@ class Linux(object):
         '''
         self.ip = '119.23.51.139'
         self.username = 'root'
-        self.password = 'NJUCloud017'
+        self.password = 'NJUCloud145'
         self.timeout = timeout
         # transport和chanel
         self.t = ''
@@ -137,11 +137,15 @@ class Linux(object):
         :return:
         """
         if not self.is_dir(remote_path):
+            if not os.path.exists(local_path):
+                path = os.path.split(local_path)[0]
+                os.makedirs(path)
             self.sftp.get(remotepath=remote_path, localpath=local_path)
             return
 
         item_list = self.sftp.listdir(remote_path)
         dest = str(local_path)
+        print(dest)
         if not os.path.isdir(dest):
             os.mkdir(path=dest)
 

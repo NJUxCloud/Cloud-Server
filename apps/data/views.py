@@ -99,7 +99,7 @@ class DataView(APIView):
         file_path = dir_path + filename
         self.save_to_local(file=file, dir_path=dir_path, file_path=file_path, need_unzip=need_unzip)
         self.upload_file(dir_path=dir_path, file_path=file_path, need_unzip=need_unzip)
-        self.save_to_db(file_type=file_class, file_path=file_path,need_unzip=need_unzip)
+        self.save_to_db(file_type=file_class, file_path=file_path, need_unzip=need_unzip)
 
     def save_to_db(self, file_path, file_type, need_unzip):
         """
@@ -109,9 +109,9 @@ class DataView(APIView):
         :param file_type: RawData.DOC, RawData.CODE, ...
         :return:
         """
-        #去掉.zip的后缀
-        if(need_unzip):
-            file_path=file_path.split('.')[0]
+        # 去掉.zip的后缀
+        if (need_unzip):
+            file_path = file_path.split('.')[0]
         raw_data = RawData(file_path=file_path, file_type=file_type, owner=self.request.user)
         raw_data.save()
 
@@ -121,7 +121,7 @@ class DataView(APIView):
         """
         host = Linux()
         host.connect()
-        host.sftp_upload_file(dir_path, file_path,need_unzip)
+        host.sftp_upload_file(dir_path, file_path, need_unzip)
         host.close()
 
     def save_to_local(self, file, dir_path, file_path, need_unzip):
@@ -134,8 +134,8 @@ class DataView(APIView):
         :return:
         '''
         try:
-            dir_path=global_settings.LOCAL_STORAGE_PATH +file_path.split('.')[0]
-            file_path=global_settings.LOCAL_STORAGE_PATH+file_path
+            dir_path = global_settings.LOCAL_STORAGE_PATH + file_path.split('.')[0]
+            file_path = global_settings.LOCAL_STORAGE_PATH + file_path
             if not os.path.exists(dir_path):
                 os.makedirs(dir_path)
             with open(file_path, 'wb+') as destination:
@@ -144,11 +144,11 @@ class DataView(APIView):
             if need_unzip:
                 f = zipfile.ZipFile(file_path, 'r')
                 for fname in f.namelist():
-                    #解决文件名中文乱码问题
+                    # 解决文件名中文乱码问题
                     filename = fname.encode('cp437').decode('utf8')
                     output_filename = os.path.join(dir_path, filename)
                     output_file_dir = os.path.dirname(output_filename)
-                    if(filename.endswith('/')):
+                    if (filename.endswith('/')):
                         if not os.path.exists(output_file_dir):
                             os.makedirs(output_file_dir)
                     else:
@@ -181,23 +181,23 @@ class DataView(APIView):
             command = 'wget -c -P ./' + file_path + ' ' + url
             host.send(cmd=command)
         host.close()
-        self.handle_url_local(urls=urls,file_path=file_path)
-        self.save_to_db(file_type=file_class, file_path=file_path,need_unzip=False)
+        self.handle_url_local(urls=urls, file_path=file_path)
+        self.save_to_db(file_type=file_class, file_path=file_path, need_unzip=False)
 
-    def handle_url_local(self,urls,file_path):
+    def handle_url_local(self, urls, file_path):
         '''
         将url文件缓存到本地
         :param request:
         :return:
         '''
-        local_file_path=global_settings.LOCAL_STORAGE_PATH +file_path
+        local_file_path = global_settings.LOCAL_STORAGE_PATH + file_path
         if not os.path.exists(local_file_path):
             os.makedirs(local_file_path)
         for url in urls:
             try:
-                file_name=local_file_path+'/'+str(url).split('/')[-1]
-                urllib.request.urlretrieve(url,file_name)
-            except Exception :
+                file_name = local_file_path + '/' + str(url).split('/')[-1]
+                urllib.request.urlretrieve(url, file_name)
+            except Exception:
                 print(traceback.print_exc())
                 print('\tError retrieving the URL:', url)
 
@@ -209,10 +209,17 @@ class DataDetail(APIView):
     permission_classes = (IsAuthenticated,)
 
     def get(self, request, pk, format=None):
-        relative_path=request.GET.get('relative_path')
+        relative_path = request.GET.get('relative_path')
         return self.get_object(pk=pk, relative_path=relative_path)
 
-    def get_object(self,pk, relative_path=None):
+    def delete(self, request, pk, format=None):
+        data = RawData.objects.get(pk=pk)
+        if data is None:
+            return Response(status=status.HTTP_204_NO_CONTENT)
+        data.delete()
+        return Response(status=status.HTTP_200_OK, data={'message': 'success'})
+
+    def get_object(self, pk, relative_path=None):
         """
         获得一份数据全部内容
         :param relative_path: 目录中文件的相对路径
@@ -224,7 +231,7 @@ class DataDetail(APIView):
             userid = str(raw_data.owner.id)
             # 文件类别(doc, code, audio, picture)
             file_class = raw_data.file_type
-            relative_path = 'NJUCloud/' + userid + '/data/' + file_class + '/' +relative_path
+            relative_path = 'NJUCloud/' + userid + '/data/' + file_class + '/' + relative_path
             local_file_path = global_settings.LOCAL_STORAGE_PATH + relative_path
             if local_file_path.endswith('.csv'):
                 file_type = RawData.DOC

@@ -222,7 +222,7 @@ csv文件返回为
 
 ```
 
-#### `AUTH` `POST` 用户上传文件 /data/
+#### `AUTH` `POST` 用户上传文件 /data/list/
 支持上传url链接、压缩包、单个文件
 
 - file_type: url / single / zip
@@ -236,7 +236,8 @@ csv文件返回为
     "message": "success"
 }
 ```
-
+如果不存在对应id的数据文件
+返回状态为 HTTP_204_NO_CONTENT
 
 -------
 
