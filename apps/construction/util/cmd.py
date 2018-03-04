@@ -17,14 +17,14 @@ def get_train_cmd(basedir, ps_host, worker_host, config, save_path, model_name, 
         save_path += "/"
 
     host_str = 'python %sconstruct_distribute.py --ps_hosts=%s --worker_hosts=%s  ' \
-               '--job_name=ps --task_index=0 --config=%s --save_path=%s --model_name=%s' \
+               '--job_name=ps --task_index=0 --config=\'%s\' --save_path=%s --model_name=%s' \
                ' --data_dir=%s --result=%s' \
                % (basedir, ps_host, worker_host, config, save_path, model_name, data_dir, result_path)
 
     worker_str = 'python %sconstruct_distribute.py --ps_hosts=%s --worker_hosts=%s ' \
-                 '--job_name=worker --task_index=0 --config=%s --save_path=%s --model_name=%s' \
+                 '--job_name=worker --task_index=0 --config=\'%s\' --save_path=%s --model_name=%s' \
                  ' --data_dir=%s --result=%s' \
-                 % (basedir, ps_host, worker_host, "\'" + config + "\'", save_path, model_name, data_dir, result_path)
+                 % (basedir, ps_host, worker_host, config , save_path, model_name, data_dir, result_path)
     return [host_str, worker_str]
 
 
@@ -44,7 +44,7 @@ def get_inference_cmd(basedir, config, save_path, model_name, target, result_pat
     if save_path != "" and save_path[-1] != '/':
         save_path += "/"
 
-    inf_str = 'python %sconstruct_inference.py --config=%s --save_path=%s --model_name=%s ' \
+    inf_str = 'python %sconstruct_inference.py --config=\'%s\' --save_path=%s --model_name=%s ' \
               '--target=%s --result=%s' \
               % (basedir, config, save_path, model_name, target, result_path)
     return inf_str
@@ -57,7 +57,7 @@ def test():
              '{"middle_layer":[{"layer":"conv","filter":[2,2,10]},{"layer":"conv","filter":' \
              '[2,2,20]},{"layer":"pool"},{"layer":"norm"},{"layer":"active"},{"layer":"connect"},' \
              '{"layer":"connect"}],"output_layer":{}}}'
-    a = get_train_cmd("./", "127.0.0.1:22223", "127.0.0.1:22223", config, './model5', "model", "./data", "result.json")
+    a = get_train_cmd("./", "127.0.0.1:22223", "127.0.0.1:22224", config, './model6', "model", "./data", "result.txt")
     print(a[0])
     print(a[1])
     print(get_inference_cmd("",config,"./model5","model","./test/test1.jpg","result.json"))
