@@ -294,11 +294,43 @@ POST 传入的json格式:
 -------
 
 ### 参数及运行模块
-#### `AUTH` `GET` 获得算法列表及参数信息 /generation/options/list/
-#### `AUTH` `GET` 获得下一步可选的算法列表及参数信息 /generation/options/next/
-#### `AUTH` `POST` 生成代码 /generation/generate/
-#### `AUTH` `POST` 获得基本结果 /generation/run/basic/
-#### `AUTH` `GET` 重新加载模型参数 /generation/restore/([0-9]+)/
+#### `AUTH` `POST` 生成代码 /construct/construction/(?P<userid>[0-9]+)/(?P<modelname>\w+)/(?P<datatype>\w+)/$
+例如：http://127.0.0.1:8000/construct/construction/1/modelname2/file/
+
+传过来的json格式
+```json
+{"iter":1000,
+ "learning_rate":0.01,
+ "ratio":0.8,
+ "loss_name":"entropy",
+ "optimizer_name":"GradientDescentOptimizer",
+ "net_type":"CNN",
+ "net_config":{
+    "middle_layer":[{
+        "layer":"conv",
+        "filter":[2,2,10]
+        },{
+        "layer":"conv",
+        "filter":[2,2,20]
+        },{
+        "layer":"pool"
+        },{
+        "layer":"norm"
+        },{
+        "layer":"active"
+        },{
+        "layer":"connect"
+        },{
+        "layer":"connect"
+    }],
+ "output_layer":{}
+ }
+}
+
+```
+
+获取的结果是200
+
 #### `AUTH` `POST` 停止模型运行 /generation/run/stop/
 #### `AUTH` `POST` 暂停模型运行 /generation/run/pause/
 
@@ -477,8 +509,8 @@ modelname为该训练模型的名称
 
 ```
 
-
 -------
+
 
 ### 模型模块
 #### `AUTH` `GET` 获得用户模型列表 /construct/config/
