@@ -1,4 +1,4 @@
-def get_train_cmd(basedir, ps_host, worker_host, config, save_path, model_name, data_dir, result_path):
+def get_train_cmd(basedir, ps_host, worker_host, config, save_path, model_name, data_dir, result_path, ratio):
     """
     根据输入获取命令
     :param basedir:     construct_distribute.py 所在的文件夹
@@ -9,6 +9,7 @@ def get_train_cmd(basedir, ps_host, worker_host, config, save_path, model_name, 
     :param model_name:  模型名称
     :param data_dir:    数据集所在路径
     :param result_path: json结果保存路径
+    :param ratio:  训练集测试集比例
     :return: 【ps命令,worker】命令
     """
     if basedir != "" and basedir[-1] != '/':
@@ -18,13 +19,13 @@ def get_train_cmd(basedir, ps_host, worker_host, config, save_path, model_name, 
 
     host_str = 'python %sconstruct_distribute.py --ps_hosts=%s --worker_hosts=%s  ' \
                '--job_name=ps --task_index=0 --config=\'%s\' --save_path=%s --model_name=%s' \
-               ' --data_dir=%s --result=%s' \
-               % (basedir, ps_host, worker_host, config, save_path, model_name, data_dir, result_path)
+               ' --data_dir=%s --result=%s --ratio=%f' \
+               % (basedir, ps_host, worker_host, config, save_path, model_name, data_dir, result_path, ratio)
 
     worker_str = 'python %sconstruct_distribute.py --ps_hosts=%s --worker_hosts=%s ' \
                  '--job_name=worker --task_index=0 --config=\'%s\' --save_path=%s --model_name=%s' \
-                 ' --data_dir=%s --result=%s' \
-                 % (basedir, ps_host, worker_host, config , save_path, model_name, data_dir, result_path)
+                 ' --data_dir=%s --result=%s --ratio=%f' \
+                 % (basedir, ps_host, worker_host, config , save_path, model_name, data_dir, result_path, ratio)
     return [host_str, worker_str]
 
 
@@ -57,7 +58,8 @@ def test():
              '{"middle_layer":[{"layer":"conv","filter":[2,2,10]},{"layer":"conv","filter":' \
              '[2,2,20]},{"layer":"pool"},{"layer":"norm"},{"layer":"active"},{"layer":"connect"},' \
              '{"layer":"connect"}],"output_layer":{}}}'
-    a = get_train_cmd("./", "127.0.0.1:22223", "127.0.0.1:22224", config, './model6', "model", "./data", "result.txt")
+    a = get_train_cmd("./", "127.0.0.1:22223", "127.0.0.1:22224", config, './model6', "model", "./data",
+                      "result.txt",0.8)
     print(a[0])
     print(a[1])
     print(get_inference_cmd("",config,"./model5","model","./test/test1.jpg","result.json"))
