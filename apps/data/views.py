@@ -40,16 +40,18 @@ class DataView(APIView):
         file_type = request.POST.get('file_type')
         try:
             if file_type == 'single':
-                self.upload_and_save(request, need_unzip=False)
+                data_id = self.upload_and_save(request, need_unzip=False)
             elif file_type == 'zip':
-                self.upload_and_save(request, need_unzip=True)
+                data_id = self.upload_and_save(request, need_unzip=True)
             elif file_type == 'url':
-                self.handle_url(request)
+                data_id = self.handle_url(request)
+            else:
+                return Response(status=status.HTTP_400_BAD_REQUEST)
 
         except Exception as e:
             print(traceback.print_exc())
             return Response(status=status.HTTP_400_BAD_REQUEST)
-        return Response(status=status.HTTP_200_OK)
+        return Response(data={'data_id': data_id}, status=status.HTTP_200_OK)
 
     def get(self, request, format=None):
         """
@@ -98,8 +100,9 @@ class DataView(APIView):
         dir_path = 'NJUCloud/' + userid + '/data/' + file_class + '/'
         file_path = dir_path + filename
         self.save_to_local(file=file, dir_path=dir_path, file_path=file_path, need_unzip=need_unzip)
-        self.upload_file(dir_path=dir_path, file_path=file_path, need_unzip=need_unzip)
-        self.save_to_db(file_type=file_class, file_path=file_path, need_unzip=need_unzip)
+        # self.upload_file(dir_path=dir_path, file_path=file_path, need_unzip=need_unzip)
+        data_id = self.save_to_db(file_type=file_class, file_path=file_path, need_unzip=need_unzip)
+        return data_id
 
     def save_to_db(self, file_path, file_type, need_unzip):
         """
@@ -115,14 +118,16 @@ class DataView(APIView):
         raw_data = RawData(file_path=file_path, file_type=file_type, owner=self.request.user)
         raw_data.save()
 
-    def upload_file(self, dir_path, file_path, need_unzip):
-        """
-        上传文件，如果需要解压则最后need_unzip会是true
-        """
-        host = Linux()
-        host.connect()
-        host.sftp_upload_file(dir_path, file_path, need_unzip)
-        host.close()
+        return raw_data.id
+
+    # def upload_file(self, dir_path, file_path, need_unzip):
+    #     """
+    #     上传文件，如果需要解压则最后need_unzip会是true
+    #     """
+    #     host = Linux()
+    #     host.connect()
+    #     host.sftp_upload_file(dir_path, file_path, need_unzip)
+    #     host.close()
 
     def save_to_local(self, file, dir_path, file_path, need_unzip):
         '''
@@ -175,14 +180,15 @@ class DataView(APIView):
         filename = self.format_name("url")
         dir_path = 'NJUCloud/' + userid + '/data/' + file_class + '/'
         file_path = dir_path + filename
-        host = Linux()
-        host.connect()
-        for url in urls:
-            command = 'wget -c -P ./' + file_path + ' ' + url
-            host.send(cmd=command)
-        host.close()
+        # host = Linux()
+        # host.connect()
+        # for url in urls:
+        #     command = 'wget -c -P ./' + file_path + ' ' + url
+        #     host.send(cmd=command)
+        # host.close()
         self.handle_url_local(urls=urls, file_path=file_path)
-        self.save_to_db(file_type=file_class, file_path=file_path, need_unzip=False)
+        data_id = self.save_to_db(file_type=file_class, file_path=file_path, need_unzip=False)
+        return data_id
 
     def handle_url_local(self, urls, file_path):
         '''
@@ -231,26 +237,26 @@ class DataDetail(APIView):
             userid = str(raw_data.owner.id)
             # 文件类别(doc, code, audio, picture)
             file_class = raw_data.file_type
-            relative_path = 'NJUCloud/' + userid + '/data/' + file_class + '/' + relative_path
+            relative_path = global_settings.LOCAL_STORAGE_PATH + 'NJUCloud/' + userid + '/data/' + file_class + '/' + relative_path
             local_file_path = global_settings.LOCAL_STORAGE_PATH + relative_path
             if local_file_path.endswith('.csv'):
                 file_type = RawData.DOC
             else:
                 file_type = None
         else:
-            remote_file_path = raw_data.file_path
+            local_file_path = raw_data.file_path
             # filename = remote_file_path.split('/')[-1]
             # TODO 本地文件存储路径
-            local_file_path = global_settings.LOCAL_STORAGE_PATH + remote_file_path
+            # local_file_path = global_settings.LOCAL_STORAGE_PATH + remote_file_path
             file_type = raw_data.file_type
 
             # 先判断在本地是否存在这一份数据的缓存
-            if not os.path.exists(local_file_path):
-                # 如果不存在，将数据从远程加载到本地
-                host = Linux()
-                host.connect()
-                host.download(remote_path=remote_file_path, local_path=local_file_path)
-                host.close()
+            # if not os.path.exists(local_file_path):
+            # 如果不存在，将数据从远程加载到本地
+            # host = Linux()
+            # host.connect()
+            # host.download(remote_path=remote_file_path, local_path=local_file_path)
+            # host.close()
 
         # csv 将csv转换为json
         if file_type == RawData.DOC and local_file_path.endswith('csv'):
@@ -279,3 +285,50 @@ class DataDetail(APIView):
             walker = FileWalker()
             json_data = walker.get_dir_tree_json(local_file_path)
             return HttpResponse(json_data, content_type='application/json')
+
+
+class ModelCreation(APIView):
+    # use session
+    authentication_classes = (SessionAuthentication, TokenAuthentication)
+    # use permission, in this case, we use the permission subclass from framework
+    permission_classes = (IsAuthenticated,)
+
+    def post(self, request):
+        user_id = self.request.user.id
+        if user_id is None:
+            return Response(status=status.HTTP_401_UNAUTHORIZED)
+
+        dir_path = global_settings.LOCAL_STORAGE_PATH + 'NJUCloud/' + user_id + '/model/'
+
+        if not os.path.exists(dir_path):
+            os.makedirs(path=dir_path)
+
+        try:
+            sub_dir_path = dir_path + '/' + request.POST.get('modelName') + '/'
+            os.mkdir(sub_dir_path)
+            return Response(status=status.HTTP_200_OK)
+        except:
+            return Response(status=status.HTTP_500_INTERNAL_SERVER_ERROR)
+
+
+class TagUpload(APIView):
+    # use session
+    authentication_classes = (SessionAuthentication, TokenAuthentication)
+    # use permission, in this case, we use the permission subclass from framework
+    permission_classes = (IsAuthenticated,)
+
+    def post(self, request):
+        user_id = self.request.user.id
+        model_name = request.POST.get('modelName')
+        tag_file = request.FILES.get('file')
+
+        try:
+            file_path = global_settings.LOCAL_STORAGE_PATH + 'NJUCloud/' + user_id + '/model/' + model_name + '/' + 'tag.json'
+
+            with open(file_path, 'wb+') as destination:
+                for chunk in tag_file.chunks():
+                    destination.write(chunk)
+
+            return Response(status=status.HTTP_200_OK)
+        except:
+            return Response(status=status.HTTP_500_INTERNAL_SERVER_ERROR)
