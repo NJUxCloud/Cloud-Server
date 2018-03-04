@@ -297,18 +297,237 @@ POST 传入的json格式:
 #### `AUTH` `GET` 获得下一步可选的算法列表及参数信息 /generation/options/next/
 #### `AUTH` `POST` 生成代码 /generation/generate/
 #### `AUTH` `POST` 获得基本结果 /generation/run/basic/
-#### `AUTH` `GET` 获得详细结果 /generation/run/details/
-#### `AUTH` `GET` 运行，获得运行实时数据 /generation/run/runtime/
 #### `AUTH` `GET` 重新加载模型参数 /generation/restore/([0-9]+)/
 #### `AUTH` `POST` 停止模型运行 /generation/run/stop/
 #### `AUTH` `POST` 暂停模型运行 /generation/run/pause/
 
 -------
+
+### 结果部分
+#### `AUTH` `GET` 获得kubernetes结果 /runtime/kubernetes/
+获取的结果格式
+```json
+{
+    "Addresses": {
+        "Hostname": "k8s-node-3",
+        "InternalIP": "119.23.51.139"
+    },
+    "Conditions": [
+        {
+            "LastTransitionTime": "Mon, 26 Feb 2018 17:49:10 +0800",
+            "Message": "kubelet has sufficient disk space available",
+            "Status": "False",
+            "LastHeartbeatTime": "Sun, 04 Mar 2018 19:49:39 +0800",
+            "Type": "OutOfDisk",
+            "Reason": "KubeletHasSufficientDisk"
+        },
+        {
+            "LastTransitionTime": "Mon, 26 Feb 2018 17:49:10 +0800",
+            "Message": "kubelet has sufficient memory available",
+            "Status": "False",
+            "LastHeartbeatTime": "Sun, 04 Mar 2018 19:49:39 +0800",
+            "Type": "MemoryPressure",
+            "Reason": "KubeletHasSufficientMemory"
+        },
+        {
+            "LastTransitionTime": "Mon, 26 Feb 2018 17:49:10 +0800",
+            "Message": "kubelet has no disk pressure",
+            "Status": "False",
+            "LastHeartbeatTime": "Sun, 04 Mar 2018 19:49:39 +0800",
+            "Type": "DiskPressure",
+            "Reason": "KubeletHasNoDiskPressure"
+        },
+        {
+            "LastTransitionTime": "Mon, 26 Feb 2018 17:49:10 +0800",
+            "Message": "kubelet is posting ready status",
+            "Status": "True",
+            "LastHeartbeatTime": "Sun, 04 Mar 2018 19:49:39 +0800",
+            "Type": "Ready",
+            "Reason": "KubeletReady"
+        }
+    ],
+    "Non-terminated Pods": [
+        {
+            "Memory Requests": "0 (0%)",
+            "CPU Limits": "0 (0%)",
+            "Namespace": "default",
+            "Memory Limits": "0 (0%)",
+            "CPU Requests": "0 (0%)",
+            "Name": "tensorflow-ps-rc-tmrww"
+        },
+        {
+            "Memory Requests": "0 (0%)",
+            "CPU Limits": "0 (0%)",
+            "Namespace": "default",
+            "Memory Limits": "0 (0%)",
+            "CPU Requests": "0 (0%)",
+            "Name": "tensorflow-worker-rc-j9ptp"
+        },
+        {
+            "Memory Requests": "0 (0%)",
+            "CPU Limits": "0 (0%)",
+            "Namespace": "default",
+            "Memory Limits": "0 (0%)",
+            "CPU Requests": "0 (0%)",
+            "Name": "tensorflow-worker-rc-q67pm"
+        },
+        {
+            "Memory Requests": "0 (0%)",
+            "CPU Limits": "0 (0%)",
+            "Namespace": "kube-system",
+            "Memory Limits": "0 (0%)",
+            "CPU Requests": "0 (0%)",
+            "Name": "kube-flannel-ds-dgvf8"
+        },
+        {
+            "Memory Requests": "0 (0%)",
+            "CPU Limits": "0 (0%)",
+            "Namespace": "kube-system",
+            "Memory Limits": "0 (0%)",
+            "CPU Requests": "0 (0%)",
+            "Name": "kube-proxy-dt8hx"
+        }
+    ],
+    "Capacity": {
+        "cpu": "1",
+        "memory": "1883724Ki",
+        "pods": "110"
+    },
+    "Allocatable": {
+        "cpu": "1",
+        "memory": "1781324Ki",
+        "pods": "110"
+    },
+    "System Info": {
+        "Kube-Proxy Version": "v1.8.2",
+        "Architecture": "amd64",
+        "Container Runtime Version": "docker://Unknown",
+        "Operating System": "linux",
+        "OS Image": "CentOS Linux 7 (Core)",
+        "Kubelet Version": "v1.8.2"
+    }
+}
+```
+
+#### `AUTH` `GET` 获得tensorflow的结果 /runtime/train/{modelname}/
+modelname为该训练模型的名称
+获取的结果格式
+```json
+{
+    "every_result": [
+        {
+            "accuracy": "0.080000",
+            "duration": "0.000000",
+            "step": "0"
+        },
+        {
+            "accuracy": "0.240000",
+            "duration": "0.138934",
+            "step": "100"
+        },
+        {
+            "accuracy": "0.240000",
+            "duration": "0.141843",
+            "step": "200"
+        },
+        {
+            "accuracy": "0.400000",
+            "duration": "0.139994",
+            "step": "300"
+        },
+        {
+            "accuracy": "0.360000",
+            "duration": "0.138250",
+            "step": "400"
+        },
+        {
+            "accuracy": "0.580000",
+            "duration": "0.145144",
+            "step": "500"
+        },
+        {
+            "accuracy": "0.540000",
+            "duration": "0.143614",
+            "step": "600"
+        },
+        {
+            "accuracy": "0.540000",
+            "duration": "0.142053",
+            "step": "700"
+        },
+        {
+            "accuracy": "0.660000",
+            "duration": "0.141187",
+            "step": "800"
+        },
+        {
+            "accuracy": "0.640000",
+            "duration": "0.151048",
+            "step": "900"
+        },
+        {
+            "accuracy": "0.560000",
+            "duration": "0.138814",
+            "step": "1000"
+        }
+    ],
+    "final_accuracy": 0.44
+}
+
+```
+
+
+-------
+
 ### 模型模块
-#### `AUTH` `GET` 获得用户模型列表 /models/list/
-#### `AUTH` `GET` 获得模型详情 /models/([0-9]+)/
-#### `AUTH` `DELETE` 删除模型 /models/([0-9]+)/
-#### `AUTH` `GET` 比较模型 /models/compare/
+#### `AUTH` `GET` 获得用户模型列表 /construct/config/
+获取的结果格式
+```json
+["modelname2","modelname"]
+```
+
+#### `AUTH` `GET` 获得模型详情 /construct/detail/{modelname}/
+获取的结果格式
+```json
+{"iter":1000,
+ "learning_rate":0.01,
+ "ratio":0.8,
+ "loss_name":"entropy",
+ "optimizer_name":"GradientDescentOptimizer",
+ "net_type":"CNN",
+ "net_config":{
+    "middle_layer":[{
+        "layer":"conv",
+        "filter":[2,2,10]
+        },{
+        "layer":"conv",
+        "filter":[2,2,20]
+        },{
+        "layer":"pool"
+        },{
+        "layer":"norm"
+        },{
+        "layer":"active"
+        },{
+        "layer":"connect"
+        },{
+        "layer":"connect"
+    }],
+ "output_layer":{}
+ }
+}
+
+```
+
+#### `AUTH` `GET` 使用模型 /construct/detail/{modelname}/
+获取的结果格式
+```json
+{
+  "result":"success",
+  "message":1
+ }
+```
+
 
 
 

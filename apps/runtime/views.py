@@ -13,7 +13,8 @@ from apps.runtime.util.remote_operation import Linux
 
 class TensorResultView(APIView):
     authentication_classes = (SessionAuthentication, TokenAuthentication)
-    def post(self, request, modelname, format=None):
+
+    def get(self, request, modelname, format=None):
         """
         读取训练结果
         文件目录 NJUCloud/id/model/modelname
@@ -21,10 +22,14 @@ class TensorResultView(APIView):
         :param format:
         :return: 返回json的格式
         """
+        print(modelname)
         userid = str(self.request.user.id)
         host = Linux('119.23.51.139','root','NJUCloud145')
         host.connect()
-        relative_path = 'NJUCloud/' + userid + '/model/'+modelname+'/result.txt'
+        relative_dir='NJUCloud/' + userid + '/model/'+modelname
+        relative_path =relative_dir +'/result.txt'
+        cmd=global_settings.TRAIN_RESULT_ORDER % (relative_path, relative_dir)
+        host.send(cmd)
         remote_file_path = relative_path
         local_file_path = global_settings.LOCAL_STORAGE_PATH+global_settings.LOCAL_TRAIN_RESULT_PATH
         host.download(remote_file_path,local_file_path)
@@ -43,16 +48,21 @@ class TensorResultView(APIView):
         with open(filepath, 'r') as f:
             line = f.readline()
             result = []
+            accurary=[]
             while (line.startswith("step")):
                 line_data = dict()
                 strs = line.split(',')
                 line_data['step'] = strs[0].split(':')[1]
                 line_data['accuracy'] = strs[1].split(':')[1]
+                accurary.append(float(line_data['accuracy']))
                 line_data['duration'] = strs[2].split(':')[1].strip()
                 result.append(line_data)
                 line = f.readline()
             data["every_result"] = result
-            data["final_accuracy"] = line.split(':')[1].strip()
+            if(line==None or len(line)<1):
+                data["final_accuracy"]=float(sum(accurary)) / len(accurary)
+            else:
+                data["final_accuracy"] = line.split(':')[1].strip()
         json_data = json.dumps(data)
         return json_data
 

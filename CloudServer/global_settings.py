@@ -11,3 +11,6 @@ LOCAL_KUBERNETES_RESULT_PATH = '/kubernetes/info.txt'
 
 #本地infer结果保存路径
 LOCAL_INFER_RESULT_PATH = '/train_result/infer.json'
+
+#取得训练结果的命令
+TRAIN_RESULT_ORDER='docker cp f3f8c72b32b6:/notebooks/%s /root/%s'

@@ -1,7 +1,7 @@
 def get_train_cmd(basedir, ps_host, worker_host, config, save_path, model_name, data_dir, result_path, ratio):
     """
     根据输入获取命令
-    :param basedir:     construct_distribute.py 所在的文件夹
+    :param basedir:     construct_distribute_url.py 所在的文件夹
     :param ps_host:     字符串:127.0.0.1:22223
     :param worker_host:  字符串:127.0.0.1:22223
     :param config:      config配置字符串
@@ -17,12 +17,12 @@ def get_train_cmd(basedir, ps_host, worker_host, config, save_path, model_name, 
     if save_path != "" and save_path[-1] != '/':
         save_path += "/"
 
-    host_str = 'python %sconstruct_distribute.py --ps_hosts=%s --worker_hosts=%s  ' \
+    host_str = 'python %sconstruct_distribute.py --mode=train --ps_hosts=%s --worker_hosts=%s  ' \
                '--job_name=ps --task_index=0 --config=\'%s\' --save_path=%s --model_name=%s' \
                ' --data_dir=%s --result=%s --ratio=%f' \
                % (basedir, ps_host, worker_host, config, save_path, model_name, data_dir, result_path, ratio)
 
-    worker_str = 'python %sconstruct_distribute.py --ps_hosts=%s --worker_hosts=%s ' \
+    worker_str = 'python %sconstruct_distribute.py --mode=train --ps_hosts=%s --worker_hosts=%s ' \
                  '--job_name=worker --task_index=0 --config=\'%s\' --save_path=%s --model_name=%s' \
                  ' --data_dir=%s --result=%s --ratio=%f' \
                  % (basedir, ps_host, worker_host, config , save_path, model_name, data_dir, result_path, ratio)
@@ -49,6 +49,26 @@ def get_inference_cmd(basedir, config, save_path, model_name, target, result_pat
               '--target=%s --result=%s' \
               % (basedir, config, save_path, model_name, target, result_path)
     return inf_str
+
+
+def get_sample_train_cmd(ps_host, worker_host, config,  ratio):
+    """
+    根据输入获取命令
+    :param ps_host:     字符串:127.0.0.1:22223
+    :param worker_host:  字符串:127.0.0.1:22223
+    :param config:      config配置字符串
+    :param ratio:  训练集测试集比例
+    :return: 【ps命令,worker】命令
+    """
+    host_str = 'python construct_distribute.py  --mode=train --ps_hosts=%s --worker_hosts=%s  ' \
+               '--job_name=ps --task_index=0 --config=\'%s\' --ratio=%f' \
+               % ( ps_host, worker_host, config, ratio)
+
+    worker_str = 'python construct_distribute.py --mode=train --ps_hosts=%s --worker_hosts=%s ' \
+                 '--job_name=worker --task_index=0 --config=\'%s\' --ratio=%f' \
+                 % (ps_host, worker_host, config , ratio)
+    return [host_str, worker_str]
+
 
 
 

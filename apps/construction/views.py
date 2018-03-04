@@ -17,6 +17,10 @@ from rest_framework.authentication import SessionAuthentication, TokenAuthentica
 from rest_framework.permissions import IsAuthenticated
 import json
 
+from apps.construction.util.cmd import get_sample_train_cmd
+from apps.data.util.remote_operation import Linux
+
+
 class ConfigView(APIView):
     authentication_classes = (SessionAuthentication, TokenAuthentication)
 
@@ -77,34 +81,81 @@ class ConfigDetail(APIView):
 
 class ConstructView(APIView):
 
-    def post(self,request, userid):
-        """
+    def post(self,request, userid,modelname,datatype):
+        '''
         构造代码和配置文件，将代码、配置文件和数据交给master服务器运行
+
         :param request:
+        :param userid: 用户id
+        :param modelname: 模型名称
+        :param datatype: url或者是file
         :return:
-        """
+        '''
         json_str = request.data
         userid = str(userid)
-        self.save_model_file(json_str,userid)
+        self.save_model_file(json_str,userid,modelname)
+
+        relative_path = 'NJUCloud/' + userid + '/model/' + modelname
+        self.save_model_file(json_str,userid,modelname)
+        self.create_file(json_str,relative_path,datatype,modelname)
 
         return Response(status=status.HTTP_200_OK)
 
-    def create_file(self):
-        """
+    def create_file(self,json_str,relative_path,datatype,modelname):
+        '''
         创建文件
+        :param json_str: 传入的json
+        :param relative_path: 模型路径 'NJUCloud/' + userid + '/model/' + modelname
+        :param datatype: url或者是file
         :return:
-        """
-        pass
+        '''
 
-    def save_model_file(self,json_str,userid):
+        local_file_path = global_settings.LOCAL_STORAGE_PATH + relative_path
+        cons_path = local_file_path + "/construct_distribute.py"
+
+        config=json.loads(json.dumps(json_str))
+        ratio=config['ratio']
+        config.pop('ratio')
+        config=json.dumps(config)
+
+        if(datatype=="url"):
+            file_path = "apps/construction/util/construct_distribute_url.py"
+        else:
+            file_path = "apps/construction/util/construct_distribute.py"
+
+        shutil.copyfile(file_path, cons_path)
+
+        host = Linux()
+        host.connect()
+        host.sftp.put(file_path, relative_path + "/construct_distribute.py")
+        cmds=[]
+        cmds.append('docker cp /root/%s 796ce2dbf073:/notebooks' % relative_path)
+        cmds.append('docker cp /root/%s f3f8c72b32b6:/notebooks' % relative_path)
+        cmds.append('docker exec -it 796ce2dbf073 /bin/bash')
+        cmds.append('cd  %s' % modelname)
+        python_cmds= get_sample_train_cmd('10.1.30.2:23333', '10.1.30.3:23333', config,ratio)
+        cmds.append('nohup '+python_cmds[0]+'&')
+        print('nohup '+python_cmds[0]+'&')
+        cmds.append('exit')
+        cmds.append('docker exec -it f3f8c72b32b6 /bin/bash')
+        cmds.append('cd  %s' % modelname)
+        cmds.append('nohup '+python_cmds[1]+'&')
+        print('nohup ' + python_cmds[1] + '&')
+        cmds.append('exit')
+        cmds.append('docker cp f3f8c72b32b6:/notebooks/%s/train_model /root/%s' % (modelname,relative_path))
+        cmds.append('docker cp f3f8c72b32b6:/notebooks/%s/result.txt /root/%s' % (modelname,relative_path))
+
+        for cmd in cmds:
+            host.send(cmd)
+
+        host.close()
+
+    def save_model_file(self,json_str,userid,modelname):
         '''
-        保存模型文件和脚本文件
-        :param json_str:
-        :param userid:
+        保存模型文件
+        :param json_str:界面传入的json数据
         :return:
         '''
-        # 生成随机字符
-        modelname = ''.join(random.sample(string.ascii_letters + string.digits, 8))
         relative_path = 'NJUCloud/' + userid + '/model/' + modelname
         local_file_path = global_settings.LOCAL_STORAGE_PATH + relative_path
         if (not os.path.exists(local_file_path)):
@@ -115,21 +166,13 @@ class ConstructView(APIView):
         with open(model_path, "w",encoding='UTF-8') as f:
             json.dump(json_str, f,ensure_ascii=False)
 
-        #写ps脚本
-        ps_path = local_file_path + "/ps.sh"
-        json_str=json.dumps(json_str,ensure_ascii=False)
-        print(json_str)
-        shutil.copyfile("apps/construction/ps.sh", ps_path)
-        with open(ps_path, 'a+',encoding='UTF-8') as f:
-            f.write(json_str)
-            f.write("'")
+        #todo 在本机测试用
+        host = Linux()
+        host.connect()
+        host.sftp.put(model_path,relative_path+"/model.json" )
+        host.close()
 
-        # 写worker脚本
-        worker_path=local_file_path+"/worker.sh"
-        shutil.copyfile("apps/construction/worker.sh",worker_path)
-        with open(worker_path, 'a+',encoding='UTF-8') as f:
-            f.write(json_str)
-            f.write("'")
+
 
 class ConfigOptions(APIView):
     def post(self, request):

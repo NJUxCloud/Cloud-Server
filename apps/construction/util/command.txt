@@ -1,0 +1,31 @@
+1:ssh到对应服务器 k8s-node-3
+
+2:将训练代码和数据导入分布式节点
+  1)导入PS:docker cp xxx 796ce2dbf073:/notebooks (xxx为数据和代码的文件夹)
+  2)导入WK:docker cp xxx f3f8c72b32b6:/notebooks (xxx为数据和代码的文件夹)
+
+3:进入分布式节点训练
+  1)进入PS:docker exec -it 796ce2dbf073 /bin/bash
+  2)进入xxx文件夹:cd xxx
+  3)发布训练任务:
+nohup python XXX.py --mode=train --ps_hosts=10.1.30.2:23333 --worker_hosts=10.1.30.3:23333 --job_name=ps --task_index=0&
+  4)退出PS节点:exit
+
+  1)进入PS:docker exec -it f3f8c72b32b6 /bin/bash
+  2)进入xxx文件夹:cd xxx
+  3)接收训练任务:
+nohup python XXX.py --mode=train --ps_hosts=10.1.30.2:23333 --worker_hosts=10.1.30.3:23333 --job_name=worker --task_index=0&
+  4)退出WK节点:exit
+
+4:获取结果 docker cp f3f8c72b32b6:/notebooks/xxx/yyy /home
+xxx为数据和代码的文件夹，yyy为存放输出的文件夹，最好以用户ID命名，这样导出时不会覆盖其他的训练结果，/home下即可找到训练输出的文件夹
+
+PS:796ce2dbf073 10.1.30.2
+WK:f3f8c72b32b6 10.1.30.3
+
+
+
+
+K8信息获取：
+kubectl describe node k8s-node-3 > /home/info.txt
+输出在/home/info.txt下
