@@ -264,6 +264,7 @@ POST 传入的json格式:
 ```json
 {
     "dataId":1,
+    "modelName":"myModel",
     "operations":[
       {
         "operationName":"上下翻转",
