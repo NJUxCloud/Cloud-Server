@@ -11,6 +11,7 @@ django-rest-swagger==2.0.7
 tensorflow
 paramiko
 NumPy>= 1.8.2
+opencv-python
 SciPy>= 0.13.3
 scikit-learn
 pillow

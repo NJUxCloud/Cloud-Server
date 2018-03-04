@@ -13,13 +13,13 @@
     - [`POST` 注册 /rest-auth/registration/](#post-%E6%B3%A8%E5%86%8C-rest-authregistration)
     - [`POST` 注册时验证邮箱 /rest-auth/registration/verify-email/](#post-%E6%B3%A8%E5%86%8C%E6%97%B6%E9%AA%8C%E8%AF%81%E9%82%AE%E7%AE%B1-rest-authregistrationverify-email)
   - [数据管理模块（包含了数据上传和代码上传）](#%E6%95%B0%E6%8D%AE%E7%AE%A1%E7%90%86%E6%A8%A1%E5%9D%97%E5%8C%85%E5%90%AB%E4%BA%86%E6%95%B0%E6%8D%AE%E4%B8%8A%E4%BC%A0%E5%92%8C%E4%BB%A3%E7%A0%81%E4%B8%8A%E4%BC%A0)
+    - [`AUTH` `POST` 创建新模型 /data/create/]
     - [`AUTH` `GET` 获得用户已上传数据列表 /data/list/](#auth-get-%E8%8E%B7%E5%BE%97%E7%94%A8%E6%88%B7%E5%B7%B2%E4%B8%8A%E4%BC%A0%E6%95%B0%E6%8D%AE%E5%88%97%E8%A1%A8-datalist)
     - [`AUTH` `GET` 根据数据id获得数据内容 /data/([0-9]+)/](#auth-get-%E6%A0%B9%E6%8D%AE%E6%95%B0%E6%8D%AEid%E8%8E%B7%E5%BE%97%E6%95%B0%E6%8D%AE%E5%86%85%E5%AE%B9-data0-9)
     - [`AUTH` `POST` 用户上传文件 /data/](#auth-post-%E7%94%A8%E6%88%B7%E4%B8%8A%E4%BC%A0%E6%96%87%E4%BB%B6-data)
     - [`AUTH` `DELETE` 删除数据文件 /data/([0-9]+)/](#auth-delete-%E5%88%A0%E9%99%A4%E6%95%B0%E6%8D%AE%E6%96%87%E4%BB%B6-data0-9)
   - [数据预处理](#%E6%95%B0%E6%8D%AE%E9%A2%84%E5%A4%84%E7%90%86)
-    - [`AUTH` `GET` 获得所有操作列表 /preprocess/operations/list/](#auth-get-%E8%8E%B7%E5%BE%97%E6%89%80%E6%9C%89%E6%93%8D%E4%BD%9C%E5%88%97%E8%A1%A8-preprocessoperationslist)
-    - [`AUTH` `GET` 获得预处理结果 /preprocess/([0-9]+)/](#auth-get-%E8%8E%B7%E5%BE%97%E9%A2%84%E5%A4%84%E7%90%86%E7%BB%93%E6%9E%9C-preprocess0-9)
+    - [`AUTH` `GET` 执行数据预处理操作 /preprocess/operations/list/](#auth-get-%E8%8E%B7%E5%BE%97%E6%89%80%E6%9C%89%E6%93%8D%E4%BD%9C%E5%88%97%E8%A1%A8-preprocessoperationslist)
   - [参数及运行模块](#%E5%8F%82%E6%95%B0%E5%8F%8A%E8%BF%90%E8%A1%8C%E6%A8%A1%E5%9D%97)
     - [`AUTH` `GET` 获得算法列表及参数信息 /generation/options/list/](#auth-get-%E8%8E%B7%E5%BE%97%E7%AE%97%E6%B3%95%E5%88%97%E8%A1%A8%E5%8F%8A%E5%8F%82%E6%95%B0%E4%BF%A1%E6%81%AF-generationoptionslist)
     - [`AUTH` `GET` 获得下一步可选的算法列表及参数信息 /generation/options/next/](#auth-get-%E8%8E%B7%E5%BE%97%E4%B8%8B%E4%B8%80%E6%AD%A5%E5%8F%AF%E9%80%89%E7%9A%84%E7%AE%97%E6%B3%95%E5%88%97%E8%A1%A8%E5%8F%8A%E5%8F%82%E6%95%B0%E4%BF%A1%E6%81%AF-generationoptionsnext)
@@ -144,6 +144,15 @@
 -------
 
 ### 数据管理模块（包含了数据上传和代码上传）
+#### `AUTH` `POST` 创建新模型 /data/create/
+   
+- modelName
+
+#### '`AUTH` `POST` 创建新模型 /data/tag/
+
+- modelName
+- file(格式为json)
+
 #### `AUTH` `GET` 获得用户已上传数据列表 /data/list/
 ```json
 [
@@ -230,6 +239,13 @@ csv文件返回为
 - file
 - url
 
+返回
+```json
+{
+  "data_id":1
+}
+```
+
 #### `AUTH` `DELETE` 删除数据文件 /data/(0-9]+)/
 ```json
 {
@@ -242,182 +258,37 @@ csv文件返回为
 -------
 
 ### 数据预处理
-#### `AUTH` `POST` 获得所有操作列表 /preprocess/
+#### `AUTH` `POST` 执行数据预处理操作 /preprocess/
 POST 传入的json格式:
 
 ```json
 {
-    "type":{str} # 说明此操作的类型 "init":查询第一层预处理;"search":查询某个预处理函数;"call":调用某个预处理函数
-    "func":{str} #函数名称 (init 无需此项)
-    "param":{dict} #调用函数所需要的参数 (init 无需此项)
-}
-```
-
-返回值:
-对于search来说 本次操作为查询该函数需要哪些参数
-返回json说明:
-        
-```json
-{
-    "参数字段名":(显示在界面的中文名,参数类型(基础类型),下限,上限)
-    "参数字段名":(显示在界面的中文名,参数类型(基础类型),下限,上限)
-    "return":{boolean} 该函数是否为最终函数(最终函数是真正执行处理的函数)
-}
-```
-
-
-对于init 或 call来说:
-1. 该函数是最终函数:
-        {返回值是该函数返回值}
-2.  该函数不是最终函数:
-
-```json
-{
-    “functions”:[
-        {
-            "func":{str}预处理方法函数名
-            "name":{str}预处理方在界面显示的名字
-        },
-        {
-            "func":{str}预处理方法函数名
-            "name":{str}预处理方在界面现实的名字
-        }
-}
-```      
-
-示例：
-
-```json
-POST:
-{
-	"type": "init",
-	"func": "",
-	"param":{}
-}
-
-return:
-{
-    "functions": [
-        {
-            "func": "resize",
-            "name": "图像缩放"
-        },
-        {
-            "func": "crop",
-            "name": "图像裁剪"
-        },
-        {
-            "func": "flip",
-            "name": "图像翻转"
-        },
-        {
-            "func": "adjust",
-            "name": "图像调整"
-        }
+    "dataId":1,
+    "operations":[
+      {
+        "operationName":"上下翻转",
+        "overlap":true,
+        "value1":null, // 即使不需要输入数值也加入这一项，为null
+        "value2":null
+      },
+      {
+        "operationName":"亮度调整",
+        "overlap":false,
+        "value1":0.4,
+        "value2":null
+      },
+      {
+        "operationName":"中值滤波",
+        "overlap":false,
+        "value1":5,
+        "value2":5
+      }
     ]
 }
-{
-    "error": "no such function"
-}
-```       
-
-```json
-POST:
-{
-	"type": "call",
-	"func": "resize",
-	"param":{}
-}
-
-return:
-{
-    "functions": [
-        {
-            "func": "resize_nearest",
-            "name": "邻域法"
-        },
-        {
-            "func": "resize_bicubic",
-            "name": "双三次插值法"
-        },
-        {
-            "func": "resize_bilinear",
-            "name": "双线性插值法"
-        },
-        {
-            "func": "resize_area",
-            "name": "面积插值法"
-        }
-    ]
-}
-{
-    "error": "no such function"
-}
-```  
-
-```json
-POST:
-{
-	"type": "search",
-	"func": "resize_nearest",
-	"param":{}
-}
-
-return:
-{
-    "dir": [
-        "路径",
-        "str",
-        null,
-        null
-    ],
-    "new_x": [
-        "长度",
-        "float",
-        150,
-        500
-    ],
-    "new_y": [
-        "宽度",
-        "float",
-        150,
-        500
-    ],
-    "overlap": [
-        "是否覆盖原数据",
-        "bool",
-        null,
-        null
-    ],
-    "return": true
-}
-{
-    "error": "no such function"
-}
 ```
+传的json中的operations要求有序，不同的操作顺序会带来不同的结果
 
-```json
-POST:
-{
-	"type": "call",
-	"func": "resize_nearest",
-	"param":{
-		"dir":"/Users/keenan/Downloads/p2496930348.jpg",
-		"new_x":200,
-		"new_y":300,
-		"overlap":"false"
-	}
-}
-
-return:
-{
-    "success": "success"
-}
-{
-    "error": "shdndndkhsdkjfhkjshfs"
-}
-```
-
+返回500或200
 
 -------
 
