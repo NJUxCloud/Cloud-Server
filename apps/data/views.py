@@ -294,7 +294,7 @@ class ModelCreation(APIView):
     permission_classes = (IsAuthenticated,)
 
     def post(self, request):
-        user_id = self.request.user.id
+        user_id = str(self.request.user.id)
         if user_id is None:
             return Response(status=status.HTTP_401_UNAUTHORIZED)
 
@@ -318,7 +318,7 @@ class TagUpload(APIView):
     permission_classes = (IsAuthenticated,)
 
     def post(self, request):
-        user_id = self.request.user.id
+        user_id = str(self.request.user.id)
         model_name = request.POST.get('modelName')
         tag_file = request.FILES.get('file')
 
