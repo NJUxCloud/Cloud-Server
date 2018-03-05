@@ -301,7 +301,7 @@ class ModelCreation(APIView):
         dir_path = global_settings.LOCAL_STORAGE_PATH + 'NJUCloud/' + user_id + '/model/'
 
         if not os.path.exists(dir_path):
-            os.makedirs(path=dir_path)
+            os.makedirs(dir_path)
 
         try:
             sub_dir_path = dir_path + '/' + request.POST.get('modelName') + '/'
