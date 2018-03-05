@@ -31,7 +31,7 @@
     - [`AUTH` `POST` 停止模型运行 /generation/run/stop/](#auth-post-%E5%81%9C%E6%AD%A2%E6%A8%A1%E5%9E%8B%E8%BF%90%E8%A1%8C-generationrunstop)
     - [`AUTH` `POST` 暂停模型运行 /generation/run/pause/](#auth-post-%E6%9A%82%E5%81%9C%E6%A8%A1%E5%9E%8B%E8%BF%90%E8%A1%8C-generationrunpause)
   - [模型模块](#%E6%A8%A1%E5%9E%8B%E6%A8%A1%E5%9D%97)
-    - [`AUTH` `GET` 获得用户模型列表 /models/list/](#auth-get-%E8%8E%B7%E5%BE%97%E7%94%A8%E6%88%B7%E6%A8%A1%E5%9E%8B%E5%88%97%E8%A1%A8-modelslist)
+    - [`AUTH` `GET` 获得用户模型列表 /construct/config/](#auth-get-%E8%8E%B7%E5%BE%97%E7%94%A8%E6%88%B7%E6%A8%A1%E5%9E%8B%E5%88%97%E8%A1%A8-modelslist)
     - [`AUTH` `GET` 获得模型详情 /models/([0-9]+)/](#auth-get-%E8%8E%B7%E5%BE%97%E6%A8%A1%E5%9E%8B%E8%AF%A6%E6%83%85-models0-9)
     - [`AUTH` `DELETE` 删除模型 /models/([0-9]+)/](#auth-delete-%E5%88%A0%E9%99%A4%E6%A8%A1%E5%9E%8B-models0-9)
     - [`AUTH` `GET` 比较模型 /models/compare/](#auth-get-%E6%AF%94%E8%BE%83%E6%A8%A1%E5%9E%8B-modelscompare)

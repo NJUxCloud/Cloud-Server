@@ -47,14 +47,14 @@ class PreprocessView(APIView):
         """
         params = request.data
 
-        # data_id = params['dataId']
+        data_id = params['dataId']
         model_name = params['modelName']
         operations = params['operations']
 
         # 将数据从data文件夹拷贝到模型文件夹
-        # data = RawData.objects.get(pk=data_id)
-        # data_location = data.file_path
-        data_location = '/Users/keenan/Downloads/NJUCloud/3/data/pics'
+        data = RawData.objects.get(pk=data_id)
+        data_location = data.file_path
+        # data_location = '/Users/keenan/Downloads/NJUCloud/3/data/pics'
 
         model_data_dir = global_settings.LOCAL_STORAGE_PATH + 'NJUCloud/' + \
                          str(self.request.user.id) + '/model/' + model_name + '/data'
