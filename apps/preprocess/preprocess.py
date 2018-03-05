@@ -3,6 +3,7 @@ from PIL import Image
 import numpy as np
 import os
 import cv2
+import traceback
 
 
 def save_image(dir, image):
@@ -12,8 +13,12 @@ def save_image(dir, image):
     :param image: 图片
     :return:
     """
-    im = Image.fromarray(image)
+    im = Image.fromarray(np.uint8(image))
     im.save(dir)
+
+    img = Image.open(dir)
+    gray_img = img.convert('L')
+    gray_img.save(dir)
 
 
 def copied_name(name):
@@ -36,6 +41,7 @@ def resize(dir):
     :return:
     """
     raw_image = tf.gfile.FastGFile(name=dir, mode='rb').read()
+
     with tf.Session() as sess:
         img = tf.image.decode_jpeg(raw_image)
         img_data = tf.image.resize_images(img, [28, 28], tf.image.ResizeMethod.NEAREST_NEIGHBOR)
@@ -265,15 +271,16 @@ def nl_denoise_gray(dir, overlap, h, value2):
     else:
         cv2.imwrite(copied_name(dir), new_img)
 
-#TODO 图片会不是RGB或RGBA
-def nl_denoise_colored(dir, overlap, h, value2):
-    img = cv2.imread(dir, 0)
-    print(img.shape)
-    new_img = cv2.fastNlMeansDenoisingColored(img, None, h, 7, 21)
-    if overlap:
-        cv2.imwrite(dir, new_img)
-    else:
-        cv2.imwrite(copied_name(dir), new_img)
+
+#
+# def nl_denoise_colored(dir, overlap, h, value2):
+#     img = cv2.imread(dir, 0)
+#     print(img.shape)
+#     new_img = cv2.fastNlMeansDenoisingColored(img, None, h, 7, 21)
+#     if overlap:
+#         cv2.imwrite(dir, new_img)
+#     else:
+#         cv2.imwrite(copied_name(dir), new_img)
 
 
 def add_salt_pepper_noise(dir, overlap, percent, value2):
@@ -305,3 +312,5 @@ def add_salt_pepper_noise(dir, overlap, percent, value2):
         cv2.imwrite(dir, img)
     else:
         cv2.imwrite(copied_name(dir), img)
+
+

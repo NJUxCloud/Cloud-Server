@@ -28,7 +28,7 @@ op_map = {
     "高斯模糊": "gaussian_blur",
     "中值滤波": "median_filter",
     "灰度非局部平均值去噪": "nl_denoise_gray",
-    "彩色非局部平均值去噪": "nl_denoise_colored",
+    # "彩色非局部平均值去噪": "nl_denoise_colored",
     "添加椒盐噪声": "add_salt_pepper_noise"
 }
 

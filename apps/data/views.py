@@ -332,3 +332,31 @@ class TagUpload(APIView):
             return Response(status=status.HTTP_200_OK)
         except:
             return Response(status=status.HTTP_500_INTERNAL_SERVER_ERROR)
+
+
+# class ModelsList(APIView):
+#     authentication_classes = (SessionAuthentication, TokenAuthentication)
+#     # use permission, in this case, we use the permission subclass from framework
+#     permission_classes = (IsAuthenticated,)
+#
+#     def get(self, request, format=None):
+#         user_id = str(self.request.user.id)
+#
+#         model_dir_loc = global_settings.LOCAL_STORAGE_PATH + 'NJUCloud/' + user_id + '/model/'
+#
+#         model_dirs = [{os.path.join(model_dir_loc, o): o} for o in os.listdir(model_dir_loc) if
+#                       os.path.isdir(os.path.join(model_dir_loc, o))]
+#
+#         models_list = []
+#         for model_dir in model_dirs:
+#             for k, v in model_dir.items():
+#                 cur = dict()
+#                 cur['modelName'] = v
+#                 cur['creationTime'] = time.strftime('%Y-%m-%d %H:%M:%S', time.localtime(os.stat(k).st_ctime))
+#                 models_list.append(cur)
+#
+#         res = dict()
+#         res['userId'] = user_id
+#         res['models'] = models_list
+#
+#         return Response(data=res, status=status.HTTP_200_OK)
