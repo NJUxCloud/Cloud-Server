@@ -279,15 +279,15 @@ def get_net(net_type, net_config, x, keep_prob):
     return cnn(net_config, x)
 
 
-def byteify(input):
-    if isinstance(input, dict):
-        return {byteify(key): byteify(value) for key, value in input.iteritems()}
-    elif isinstance(input, list):
-        return [byteify(element) for element in input]
-    elif isinstance(input, np.unicode):
-        return input.encode('utf-8')
-    else:
-        return input
+# def byteify(input):
+#     if isinstance(input, dict):
+#         return {byteify(key): byteify(value) for key, value in input.iteritems()}
+#     elif isinstance(input, list):
+#         return [byteify(element) for element in input]
+#     elif isinstance(input, np.unicode):
+#         return input.encode('utf-8')
+#     else:
+#         return input
 
 
 def main(_):
@@ -297,7 +297,7 @@ def main(_):
     data = {"result": "fail", "message": "no model please train a model first"}
     config = FLAGS.config
     config = json.loads(config)
-    config = byteify(config)
+    # config = byteify(config)
     net_type = config["net_type"]  # 神经网络（传统还是cnn）
     net_config = config["net_config"]  # 神经网络参数
     model_name = FLAGS.model_name
@@ -310,12 +310,13 @@ def main(_):
             json.dump(data, file)
         return
     im = Image.open(filename)
-    im = im.resize((28, 28))
+    im = im.resize((28, 28)).convert('L')
     arr = np.asarray(im)
     arr = np.array(arr, dtype='float32')
+    print(arr.shape)
     arr /= 255.0
     arr = arr.flatten()
-    # print(np.array([arr]).shape)
+    print(np.array([arr]).shape)
     x = tf.placeholder(tf.float32, [None, 784])
     keep_prob = tf.placeholder(tf.float32)
     predict = get_net(net_type, net_config, x, keep_prob)

@@ -552,8 +552,12 @@ modelname为该训练模型的名称
 
 ```
 
-#### `AUTH` `GET` 使用模型 /construct/detail/{modelname}/
-获取的结果格式
+#### `AUTH` `POST` 使用模型 /construct/inference/(?P<userid>[0-9]+)/(?P<modelname>\w+)/
+例如：http://127.0.0.1:8000/construct/inference/1/modelname2/
+
+需要传输图片文件，key是"file"，值是文件
+
+获取的结果格式，其中1表示推断的结果数字
 ```json
 {
   "result":"success",

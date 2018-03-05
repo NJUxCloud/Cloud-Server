@@ -17,7 +17,7 @@ from rest_framework.authentication import SessionAuthentication, TokenAuthentica
 from rest_framework.permissions import IsAuthenticated
 import json
 
-from apps.construction.util.cmd import get_sample_train_cmd
+from apps.construction.util.cmd import get_sample_train_cmd, get_sameple_inference_cmd
 from apps.data.util.remote_operation import Linux
 
 
@@ -66,17 +66,8 @@ class ConfigDetail(APIView):
         :return:
         '''
         userid = str(self.request.user.id)
-        relative_path = 'NJUCloud/' + userid + '/model/' + modelname + '/model.json'
-        local_file_path = global_settings.LOCAL_STORAGE_PATH + relative_path
-        print(local_file_path)
-        try:
-            with open(local_file_path, 'r') as load_f:
-                load_dict = json.load(load_f)
-                return HttpResponse(json.dumps(load_dict), content_type='application/json')
-        except Exception as e:
-            print(traceback.print_exc())
-            response = HttpResponseNotFound()
-        return response
+        load_dict=get_model_json(userid,modelname)
+        return HttpResponse(load_dict, content_type='application/json')
 
 
 class ConstructView(APIView):
@@ -129,21 +120,22 @@ class ConstructView(APIView):
         host.connect()
         host.sftp.put(file_path, relative_path + "/construct_distribute.py")
         cmds=[]
-        cmds.append('docker cp /root/%s 796ce2dbf073:/notebooks' % relative_path)
-        cmds.append('docker cp /root/%s f3f8c72b32b6:/notebooks' % relative_path)
-        cmds.append('docker exec -it 796ce2dbf073 /bin/bash')
+        cmds.append('docker cp /root/%s %s:/notebooks' % (relative_path,global_settings.PS))
+        print(cmds)
+        cmds.append('docker cp /root/%s %s:/notebooks' % (relative_path,global_settings.WK))
+        cmds.append('docker exec -it %s /bin/bash' % global_settings.PS)
         cmds.append('cd  %s' % modelname)
-        python_cmds= get_sample_train_cmd('10.1.30.2:23333', '10.1.30.3:23333', config,ratio)
+        python_cmds= get_sample_train_cmd(global_settings.PSHOSTS, global_settings.WKHOSTS, config,ratio)
         cmds.append('nohup '+python_cmds[0]+'&')
         print('nohup '+python_cmds[0]+'&')
         cmds.append('exit')
-        cmds.append('docker exec -it f3f8c72b32b6 /bin/bash')
+        cmds.append('docker exec -it %s /bin/bash' % global_settings.WK)
         cmds.append('cd  %s' % modelname)
         cmds.append('nohup '+python_cmds[1]+'&')
         print('nohup ' + python_cmds[1] + '&')
         cmds.append('exit')
-        cmds.append('docker cp f3f8c72b32b6:/notebooks/%s/train_model /root/%s' % (modelname,relative_path))
-        cmds.append('docker cp f3f8c72b32b6:/notebooks/%s/result.txt /root/%s' % (modelname,relative_path))
+        cmds.append('docker cp %s:/notebooks/%s/train_model /root/%s' % (global_settings.WK,modelname,relative_path))
+        cmds.append('docker cp %s:/notebooks/%s/result.txt /root/%s' % (global_settings.WK,modelname,relative_path))
 
         for cmd in cmds:
             host.send(cmd)
@@ -172,8 +164,6 @@ class ConstructView(APIView):
         host.sftp.put(model_path,relative_path+"/model.json" )
         host.close()
 
-
-
 class ConfigOptions(APIView):
     def post(self, request):
         param = request.data
@@ -188,3 +178,97 @@ class ConfigOptions(APIView):
                 back_data = {'error': 'wrong option'}
 
         return Response(data=back_data, status=status.HTTP_200_OK)
+
+def get_model_json(userid,modelname):
+    '''
+    获取model.json配置文件
+    :param userid:
+    :param modelname:
+    :return:
+    '''
+    relative_path = 'NJUCloud/' + userid + '/model/' + modelname + '/model.json'
+    local_file_path = global_settings.LOCAL_STORAGE_PATH + relative_path
+    print(local_file_path)
+    try:
+        with open(local_file_path, 'r') as load_f:
+            load_dict = json.load(load_f)
+        return json.dumps(load_dict)
+    except Exception as e:
+        print(traceback.print_exc())
+        response = HttpResponseNotFound()
+
+class InferenceView(APIView):
+    # use session
+    authentication_classes = (SessionAuthentication, TokenAuthentication)
+    def post(self,request, userid,modelname):
+        file=request.FILES.get('file')
+        relative_path = 'NJUCloud/' + userid + '/model/' + modelname+'/infer'
+        self.save_to_local(file,relative_path)
+        jsondata=self.create_file(userid,modelname,file.name)
+        return HttpResponse(jsondata, content_type='application/json')
+
+    def create_file(self,userid,modelname,infer_filename):
+        '''
+        创建推断代码并运行获取结果
+        :param userid:
+        :param modelname:
+        :param infer_filename: ./infer/xxx
+        :return:
+        '''
+        load_dict = get_model_json(userid, modelname)
+        relative_dir = 'NJUCloud/' + userid + '/model/' + modelname
+        local_file_path = global_settings.LOCAL_STORAGE_PATH + relative_dir
+        infer_path = local_file_path + "/construct_inference.py"
+
+        config = json.loads(load_dict)
+        config.pop('ratio')
+        config = json.dumps(config)
+
+        file_path = "apps/construction/util/construct_inference.py"
+
+        shutil.copyfile(file_path, infer_path)
+
+        host = Linux()
+        host.connect()
+        #运行推断代码
+        host.sftp.put(file_path, relative_dir + "/construct_inference.py")
+        cd_cmd='cd '+relative_dir
+        host.send(cd_cmd)
+        run_cmd=get_sameple_inference_cmd(config,'./infer/'+infer_filename)
+        print(run_cmd)
+        host.send(run_cmd)
+
+        #读取结果
+        remote_file_path=relative_dir+'/result.json'
+        print(remote_file_path)
+        local_result_file_path=global_settings.LOCAL_STORAGE_PATH+global_settings.LOCAL_INFER_RESULT_PATH
+        host.download(remote_file_path,local_result_file_path)
+        with open(local_result_file_path, 'r') as load_f:
+            load_dict = json.load(load_f)
+        jsondata=json.dumps(load_dict)
+        host.close()
+        return jsondata
+
+    def  save_to_local(self,file,relative_path):
+
+        '''
+        保存测试图片
+        :param file:
+        :param relative_path:
+        :return:
+        '''
+        local_dir_path = global_settings.LOCAL_STORAGE_PATH + relative_path
+        if (not os.path.exists(local_dir_path)):
+            os.makedirs(local_dir_path)
+
+        # 写图片到本地
+        local_file_path = global_settings.LOCAL_STORAGE_PATH + relative_path + '/' + file.name
+        with open(local_file_path, 'wb+') as destination:
+            for chunk in file.chunks():
+                destination.write(chunk)
+
+        # todo 在本机测试用
+        host = Linux()
+        host.connect()
+        host.sftp_upload_file(relative_path,relative_path + '/' + file.name,False)
+        host.close()
