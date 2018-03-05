@@ -7,4 +7,5 @@ urlpatterns = [
     re_path(r'^options/$', views.ConfigOptions.as_view()),
     re_path(r'^detail/(?P<modelname>\w+)/$', views.ConfigDetail.as_view()),
     re_path(r'^construction/(?P<userid>[0-9]+)/(?P<modelname>\w+)/(?P<datatype>\w+)/$', views.ConstructView.as_view()),
+    re_path(r'^inference/(?P<userid>[0-9]+)/(?P<modelname>\w+)/$',views.InferenceView.as_view())
 ]

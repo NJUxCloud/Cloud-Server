@@ -1,5 +1,6 @@
 # encoding: utf-8
 # !/usr/bin/env python
+from imp import reload
 
 import tensorflow as tf
 import math
@@ -10,6 +11,9 @@ import json
 
 # Define parameters
 import time
+import sys
+reload(sys)
+sys.setdefaultencoding('utf8')
 
 flags = tf.app.flags
 FLAGS = flags.FLAGS

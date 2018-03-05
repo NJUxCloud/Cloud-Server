@@ -29,14 +29,14 @@ def get_train_cmd(basedir, ps_host, worker_host, config, save_path, model_name, 
     return [host_str, worker_str]
 
 
-def get_inference_cmd(basedir, config, save_path, model_name, target, result_path):
+def get_inference_cmd(basedir, config, save_path, model_name, filename, result_path):
     """
     根据输入获取命令
     :param basedir:     construct_inference.py 所在的文件夹
     :param config:      config配置字符串
     :param save_path:   模型保存路径
     :param model_name:  模型名称
-    :param target:      需要测试的图像路径
+    :param filename:      需要测试的图像路径
     :param result_path: json结果保存路径
     :return: 【ps命令,worker】命令
     """
@@ -46,8 +46,8 @@ def get_inference_cmd(basedir, config, save_path, model_name, target, result_pat
         save_path += "/"
 
     inf_str = 'python %sconstruct_inference.py --config=\'%s\' --save_path=%s --model_name=%s ' \
-              '--target=%s --result=%s' \
-              % (basedir, config, save_path, model_name, target, result_path)
+              '--filename=%s --result=%s' \
+              % (basedir, config, save_path, model_name, filename, result_path)
     return inf_str
 
 
@@ -69,7 +69,20 @@ def get_sample_train_cmd(ps_host, worker_host, config,  ratio):
                  % (ps_host, worker_host, config , ratio)
     return [host_str, worker_str]
 
+def get_sameple_inference_cmd( config, filename):
+    """
+    根据输入获取命令
+    :param basedir:     construct_inference.py 所在的文件夹
+    :param config:      config配置字符串
+    :param save_path:   模型保存路径
+    :param model_name:  模型名称
+    :param filename:      需要测试的图像路径
+    :param result_path: json结果保存路径
+    :return: 【ps命令,worker】命令
+    """
 
+    inf_str = 'python3 construct_inference.py --config=\'%s\' --filename=%s ' % (config,filename)
+    return inf_str
 
 
 def test():
