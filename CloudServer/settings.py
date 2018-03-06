@@ -25,7 +25,7 @@ SECRET_KEY = '$f=qcg_d0nr=fvj4rp95^-r@5tqqd)n!lzb12=de6%@zdk0j&w'
 DEBUG = True
 
 # ALLOWED_HOSTS = ['127.0.0.1', 'localhost']
-ALLOWED_HOSTS = []
+ALLOWED_HOSTS = ["*"]
 # Application definition
 
 INSTALLED_APPS = [
