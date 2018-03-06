@@ -10,6 +10,7 @@ import os
 
 from apps.data.models import RawData
 import apps.preprocess.preprocess as preprocess
+import traceback
 
 op_map = {
     "上下翻转": "flip_up_down",
@@ -75,6 +76,7 @@ class PreprocessView(APIView):
 
             return Response(data={'message': 'success'}, status=status.HTTP_200_OK)
         except:
+            traceback.print_exc()
             return Response(data={'message': 'error'}, status=status.HTTP_500_INTERNAL_SERVER_ERROR)
 
     def get(self, request, format=None):
@@ -96,8 +98,6 @@ class PreprocessView(APIView):
         :param tag_location:
         :return:
         """
-        print(type(operation))
-        print(operation)
 
         pp = preprocess
         if hasattr(pp, op_map.get(operation['operationName'])):

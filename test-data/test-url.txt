@@ -1,0 +1,9 @@
+http://yann.lecun.com/exdb/mnist/train-images-idx3-ubyte.gz
+http://yann.lecun.com/exdb/mnist/train-labels-idx1-ubyte.gz
+http://yann.lecun.com/exdb/mnist/t10k-images-idx3-ubyte.gz
+http://yann.lecun.com/exdb/mnist/t10k-labels-idx1-ubyte.gz
+
+url的数量不定
+传给后端的时候url之间用英文分号分隔
+
+用户如果选择url，没有标签上传，也没有数据预处理页面，但还是要调用一次数据预处理的API
