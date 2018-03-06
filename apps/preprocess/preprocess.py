@@ -40,14 +40,17 @@ def resize(dir):
     :param overlap:
     :return:
     """
-    raw_image = tf.gfile.FastGFile(name=dir, mode='rb').read()
-
-    with tf.Session() as sess:
-        img = tf.image.decode_jpeg(raw_image)
-        img_data = tf.image.resize_images(img, [28, 28], tf.image.ResizeMethod.NEAREST_NEIGHBOR)
-        new_img = np.asarray(img_data.eval(), dtype='uint8')
-        save_image(dir=dir, image=new_img)
-        sess.close()
+    # raw_image = tf.gfile.FastGFile(name=dir, mode='rb').read()
+    #
+    # with tf.Session() as sess:
+    #     img = tf.image.decode_jpeg(raw_image)
+    #     img_data = tf.image.resize_images(img, [28, 28], tf.image.ResizeMethod.NEAREST_NEIGHBOR)
+    #     new_img = np.asarray(img_data.eval(), dtype='uint8')
+    #     save_image(dir=dir, image=new_img)
+    #     sess.close()
+    im1 = cv2.imread(dir)
+    img = cv2.resize(im1, (28, 28), interpolation=cv2.INTER_CUBIC)
+    cv2.imwrite(dir, img)
 
 
 def flip_up_down(dir, overlap, value1, value2):
@@ -314,3 +317,5 @@ def add_salt_pepper_noise(dir, overlap, percent, value2):
         cv2.imwrite(copied_name(dir), img)
 
 
+resize('/Users/keenan/Downloads/roman-kraft-57268.jpg')
+flip_up_down('/Users/keenan/Downloads/roman-kraft-57268.jpg', False, 0, 0)
