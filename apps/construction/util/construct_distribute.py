@@ -29,7 +29,7 @@ flags.DEFINE_string(flag_name="mode", default_value="train", docstring="train or
 flags.DEFINE_string(flag_name="ratio", default_value="0.8", docstring="train test ratio")
 flags.DEFINE_string(flag_name="model_name", default_value="model", docstring="model name")
 flags.DEFINE_string(flag_name="save_path", default_value="./train_model/", docstring="model path")
-flags.DEFINE_string(flag_name="data_dir", default_value="data", docstring="Directory for storing input data")
+flags.DEFINE_string(flag_name="data_dir", default_value="", docstring="Directory for storing input data")
 flags.DEFINE_string(flag_name="filename", default_value="", docstring="specific target")
 flags.DEFINE_string(flag_name="result", default_value="./result.txt", docstring="result place")
 
@@ -437,6 +437,8 @@ def read_user_data(path, ratio):
 
     with open(os.path.join(path, 'tag.json')) as file:
         lablejson = json.load(file)
+
+    path='data'
     for (root, dirs, files) in os.walk(path):
         for filename in files:
             if filename.endswith('.jpg'):
