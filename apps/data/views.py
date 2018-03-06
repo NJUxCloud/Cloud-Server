@@ -50,7 +50,7 @@ class DataView(APIView):
 
         except Exception as e:
             print(traceback.print_exc())
-            return Response(status=status.HTTP_400_BAD_REQUEST)
+            return Response(data={'message': 'error'}, status=status.HTTP_500_INTERNAL_SERVER_ERROR)
         return Response(data={'data_id': data_id}, status=status.HTTP_200_OK)
 
     def get(self, request, format=None):
@@ -178,7 +178,7 @@ class DataView(APIView):
         userid = str(self.request.user.id)
         urls = request.POST.get('url').split(';')
         filename = self.format_name("url")
-        dir_path = 'NJUCloud/' + userid + '/data/' + file_class + '/'
+        dir_path = global_settings.LOCAL_STORAGE_PATH + 'NJUCloud/' + userid + '/data/' + file_class + '/'
         file_path = dir_path + filename
         # host = Linux()
         # host.connect()
@@ -196,12 +196,12 @@ class DataView(APIView):
         :param request:
         :return:
         '''
-        local_file_path = global_settings.LOCAL_STORAGE_PATH + file_path
-        if not os.path.exists(local_file_path):
-            os.makedirs(local_file_path)
+        # local_file_path = global_settings.LOCAL_STORAGE_PATH + file_path
+        if not os.path.exists(file_path):
+            os.makedirs(file_path)
         for url in urls:
             try:
-                file_name = local_file_path + '/' + str(url).split('/')[-1]
+                file_name = file_path + '/' + str(url).split('/')[-1]
                 urllib.request.urlretrieve(url, file_name)
             except Exception:
                 print(traceback.print_exc())
