@@ -148,7 +148,7 @@
    
 - modelName
 
-#### '`AUTH` `POST` 创建新模型 /data/tag/
+#### '`AUTH` `POST` 上传标签文件 /data/tag/
 
 - modelName
 - file(格式为json)

@@ -306,9 +306,9 @@ class ModelCreation(APIView):
         try:
             sub_dir_path = dir_path + '/' + request.POST.get('modelName') + '/'
             os.mkdir(sub_dir_path)
-            return Response(status=status.HTTP_200_OK)
+            return Response(data={'message': 'success'}, status=status.HTTP_200_OK)
         except:
-            return Response(status=status.HTTP_500_INTERNAL_SERVER_ERROR)
+            return Response(data={'message': 'error'}, status=status.HTTP_500_INTERNAL_SERVER_ERROR)
 
 
 class TagUpload(APIView):
@@ -329,10 +329,9 @@ class TagUpload(APIView):
                 for chunk in tag_file.chunks():
                     destination.write(chunk)
 
-            return Response(status=status.HTTP_200_OK)
+            return Response(data={'message': 'success'}, status=status.HTTP_200_OK)
         except:
-            return Response(status=status.HTTP_500_INTERNAL_SERVER_ERROR)
-
+            return Response(data={'message': 'error'}, status=status.HTTP_500_INTERNAL_SERVER_ERROR)
 
 # class ModelsList(APIView):
 #     authentication_classes = (SessionAuthentication, TokenAuthentication)
