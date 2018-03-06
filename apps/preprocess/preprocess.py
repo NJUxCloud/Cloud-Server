@@ -48,6 +48,7 @@ def resize(dir):
     #     new_img = np.asarray(img_data.eval(), dtype='uint8')
     #     save_image(dir=dir, image=new_img)
     #     sess.close()
+    print(dir)
     im1 = cv2.imread(dir)
     img = cv2.resize(im1, (28, 28), interpolation=cv2.INTER_CUBIC)
     cv2.imwrite(dir, img)
