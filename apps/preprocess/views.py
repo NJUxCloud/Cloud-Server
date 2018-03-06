@@ -45,37 +45,40 @@ class PreprocessView(APIView):
         :param request:
         :return:
         """
-        params = request.data
+        try:
+            params = request.data
 
-        data_id = params['dataId']
-        model_name = params['modelName']
-        operations = params['operations']
+            data_id = params['dataId']
+            model_name = params['modelName']
+            operations = params['operations']
 
-        # 将数据从data文件夹拷贝到模型文件夹
-        data = RawData.objects.get(pk=data_id)
-        data_location = data.file_path
-        # data_location = '/Users/keenan/Downloads/NJUCloud/3/data/pics'
+            # 将数据从data文件夹拷贝到模型文件夹
+            data = RawData.objects.get(pk=data_id)
+            data_location = data.file_path
+            # data_location = '/Users/keenan/Downloads/NJUCloud/3/data/pics'
 
-        model_data_dir = global_settings.LOCAL_STORAGE_PATH + 'NJUCloud/' + \
-                         str(self.request.user.id) + '/model/' + model_name + '/data'
+            model_data_dir = global_settings.LOCAL_STORAGE_PATH + 'NJUCloud/' + \
+                             str(self.request.user.id) + '/model/' + model_name + '/data'
 
-        if not os.path.exists(model_data_dir):
-            os.mkdir(model_data_dir)
+            if not os.path.exists(model_data_dir):
+                os.mkdir(model_data_dir)
 
-        cmd = 'cp -R ' + data_location + '/*' + ' ' + model_data_dir
-        os.system(cmd)
+            cmd = 'cp -R ' + data_location + '/*' + ' ' + model_data_dir
+            os.system(cmd)
 
-        tag_location = global_settings.LOCAL_STORAGE_PATH + 'NJUCloud/' + \
-                       str(self.request.user.id) + '/model/' + model_name + '/tag.json'
+            tag_location = global_settings.LOCAL_STORAGE_PATH + 'NJUCloud/' + \
+                           str(self.request.user.id) + '/model/' + model_name + '/tag.json'
 
-        # 读取预处理操作，并按顺序进行处理
-        for operation in operations:
-            self.execute(operation, model_data_dir + '/', tag_location)
+            # 读取预处理操作，并按顺序进行处理
+            for operation in operations:
+                self.execute(operation, model_data_dir + '/', tag_location)
 
-        return Response(status=status.HTTP_200_OK)
+            return Response(data={'message': 'success'}, status=status.HTTP_200_OK)
+        except:
+            return Response(data={'message': 'error'}, status=status.HTTP_500_INTERNAL_SERVER_ERROR)
 
     def get(self, request, format=None):
-        return Response(status=status.HTTP_501_NOT_IMPLEMENTED)
+        return Response(data={'message': 'error'}, status=status.HTTP_501_NOT_IMPLEMENTED)
 
     def get_object(self, type):
         pass
