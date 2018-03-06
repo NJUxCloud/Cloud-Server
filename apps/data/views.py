@@ -237,16 +237,14 @@ class DataDetail(APIView):
             userid = str(raw_data.owner.id)
             # 文件类别(doc, code, audio, picture)
             file_class = raw_data.file_type
-            relative_path = global_settings.LOCAL_STORAGE_PATH + 'NJUCloud/' + userid + '/data/' + file_class + '/' + relative_path
-            local_file_path = global_settings.LOCAL_STORAGE_PATH + relative_path
+            local_file_path = global_settings.LOCAL_STORAGE_PATH + 'NJUCloud/' + userid + '/data/' + file_class + '/' + relative_path
             if local_file_path.endswith('.csv'):
                 file_type = RawData.DOC
             else:
                 file_type = None
         else:
-            local_file_path = raw_data.file_path
+            local_file_path = global_settings.LOCAL_STORAGE_PATH + raw_data.file_path
             # filename = remote_file_path.split('/')[-1]
-            # TODO 本地文件存储路径
             # local_file_path = global_settings.LOCAL_STORAGE_PATH + remote_file_path
             file_type = raw_data.file_type
 
