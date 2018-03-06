@@ -15,7 +15,7 @@ pip3 install virtualenv
 2. 将项目克隆到本地
 
   ```
-git clone https://github.com/NJUxCloud/Cloud-Server.git
+  git clone https://github.com/NJUxCloud/Cloud-Server.git
   ```
 
 3. 在项目中创建虚拟环境，进入项目的路径，创建的目录不需要上传到github，所以如果起了不同的虚拟环境名字，要在gitignore中加注释
@@ -34,7 +34,7 @@ pip install -r requirment.txt
 5. 可以通过运行下面的命令来检查环境准备是否就绪
 
 ```
- python manage.py runserver
+ python3 manage.py runserver
 ```
 
 
