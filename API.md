@@ -183,8 +183,10 @@
 #### `AUTH` `GET` 根据数据id获得数据内容 /data/([0-9]+)/
 ```text
 params: {
-    # 文件夹目录结构中会使用到
-    relative_path: myfile/nn/nn_binary_classification.py
+    # 文件夹目录结构中会使用到，选择某个文件查看详情
+    # relative_path是对应于原上传的文件夹的路径
+    # 例如上传的文件夹是 ./test-pics 下面有文件 ./test-pics/test53.jpg
+    relative_path: test53.jpg
 }
 ```
 return：

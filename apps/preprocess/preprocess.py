@@ -48,7 +48,7 @@ def resize(dir):
     #     new_img = np.asarray(img_data.eval(), dtype='uint8')
     #     save_image(dir=dir, image=new_img)
     #     sess.close()
-    print(dir)
+    print('resizing image: ' + dir)
     im1 = cv2.imread(dir)
     img = cv2.resize(im1, (28, 28), interpolation=cv2.INTER_CUBIC)
     cv2.imwrite(dir, img)
@@ -316,7 +316,3 @@ def add_salt_pepper_noise(dir, overlap, percent, value2):
         cv2.imwrite(dir, img)
     else:
         cv2.imwrite(copied_name(dir), img)
-
-
-resize('/Users/keenan/Downloads/roman-kraft-57268.jpg')
-flip_up_down('/Users/keenan/Downloads/roman-kraft-57268.jpg', False, 0, 0)
