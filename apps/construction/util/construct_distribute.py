@@ -406,7 +406,7 @@ def main(_):
                     step = sess.run(global_step)
                     train_accuracy = sess.run(accuracy, feed_dict={
                         x: batch[0], y_: batch[1], keep_prob: 1.0})
-                    with open(result_path, 'w') as file:
+                    with open(result_path, 'a') as file:
                         result_line = 'step:%d,accuracy:%f,duration:%f\n' % (step, train_accuracy, float(duration))
                         file.write(result_line)
                 start_time = time.time()
