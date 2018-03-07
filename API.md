@@ -296,8 +296,10 @@ POST 传入的json格式:
 -------
 
 ### 参数及运行模块
-#### `AUTH` `POST` 生成代码 /construct/construction/(?P<modelname>\w+)/(?P<datatype>\w+)/$
+#### `AUTH` `POST` 生成代码 /construct/construction/{modelname}/{datatype}/
 例如：http://127.0.0.1:8000/construct/construction/modelname2/file/
+
+注意：这里的datatype，如果是url说明之前的数据是url下载的，如果是file说明是文件上传的。
 
 传过来的json格式
 ```json
@@ -554,7 +556,7 @@ modelname为该训练模型的名称,iter为之前设置的总迭代次数
 
 ```
 
-#### `AUTH` `POST` 使用模型 /construct/inference/(?P<modelname>\w+)/
+#### `AUTH` `POST` 使用模型 /construct/inference/{modelname}/
 例如：http://127.0.0.1:8000/construct/inference/modelname2/
 
 需要传输图片文件，key是"file"，值是文件
