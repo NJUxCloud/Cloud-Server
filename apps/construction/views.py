@@ -71,8 +71,8 @@ class ConfigDetail(APIView):
 
 
 class ConstructView(APIView):
-
-    def post(self,request, userid,modelname,datatype):
+    authentication_classes = (SessionAuthentication, TokenAuthentication)
+    def post(self,request,modelname,datatype):
         '''
         构造代码和配置文件，将代码、配置文件和数据交给master服务器运行
 
@@ -83,7 +83,8 @@ class ConstructView(APIView):
         :return:
         '''
         json_str = request.data
-        userid = str(userid)
+        userid = str(request.user.id)
+
         self.save_model_file(json_str,userid,modelname)
 
         relative_path = 'NJUCloud/' + userid + '/model/' + modelname
@@ -201,7 +202,8 @@ def get_model_json(userid,modelname):
 class InferenceView(APIView):
     # use session
     authentication_classes = (SessionAuthentication, TokenAuthentication)
-    def post(self,request, userid,modelname):
+    def post(self,request,modelname):
+        userid = str(request.user.id)
         file=request.FILES.get('file')
         relative_path = 'NJUCloud/' + userid + '/model/' + modelname+'/infer'
         self.save_to_local(file,relative_path)
@@ -216,6 +218,7 @@ class InferenceView(APIView):
         :param infer_filename: ./infer/xxx
         :return:
         '''
+
         load_dict = get_model_json(userid, modelname)
         relative_dir = 'NJUCloud/' + userid + '/model/' + modelname
         local_file_path = global_settings.LOCAL_STORAGE_PATH + relative_dir
