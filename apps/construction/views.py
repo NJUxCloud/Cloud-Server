@@ -160,11 +160,6 @@ class ConstructView(APIView):
         with open(model_path, "w",encoding='UTF-8') as f:
             json.dump(json_str, f,ensure_ascii=False)
 
-        #todo 在本机测试用
-        host = Linux()
-        host.connect()
-        host.sftp.put(model_path,relative_path+"/model.json" )
-        host.close()
 
 class ConfigOptions(APIView):
     def post(self, request):
@@ -238,7 +233,7 @@ class InferenceView(APIView):
         host.sftp.put(file_path, relative_dir + "/construct_inference.py")
         cd_cmd='cd '+relative_dir
         host.send(cd_cmd)
-        run_cmd=get_sameple_inference_cmd(config,'./infer/'+infer_filename)
+        run_cmd=get_sameple_inference_cmd(config,'infer/'+infer_filename)
         print(run_cmd)
         host.send(run_cmd)
 
@@ -270,9 +265,3 @@ class InferenceView(APIView):
         with open(local_file_path, 'wb+') as destination:
             for chunk in file.chunks():
                 destination.write(chunk)
-
-        # todo 在本机测试用
-        host = Linux()
-        host.connect()
-        host.sftp_upload_file(relative_path,relative_path + '/' + file.name,False)
-        host.close()
