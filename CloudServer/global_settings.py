@@ -13,8 +13,8 @@ LOCAL_KUBERNETES_RESULT_PATH = 'kubernetes/info.txt'
 LOCAL_INFER_RESULT_PATH = 'infer_result/infer.json'
 
 # ps和wk的pod
-PS = 'ff2da74a1e08'
-WK = '4ea0dbd83dfc'
+PS = '660fc333db7b'
+WK = '683cd9403fd6'
 
 PSHOSTS = '10.1.30.4:23333'
 WKHOSTS = '10.1.30.3:23333'

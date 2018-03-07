@@ -14,7 +14,7 @@ from apps.runtime.util.remote_operation import Linux
 class TensorResultView(APIView):
     authentication_classes = (SessionAuthentication, TokenAuthentication)
 
-    def get(self, request, modelname, format=None):
+    def get(self, request, modelname,iter, format=None):
         """
         读取训练结果
         文件目录 NJUCloud/id/model/modelname
@@ -33,14 +33,14 @@ class TensorResultView(APIView):
         remote_file_path = relative_path
         local_file_path = global_settings.LOCAL_STORAGE_PATH+global_settings.LOCAL_TRAIN_RESULT_PATH
         host.download(remote_file_path,local_file_path)
-        json_data=self.read_train_results(local_file_path)
+        json_data=self.read_train_results(local_file_path,iter)
         host.close()
 
         return HttpResponse(json_data, content_type='application/json')
 
-    def read_train_results(self,filepath):
+    def read_train_results(self,filepath,iter):
         '''
-        读取训练结果
+        读取训练结果,如果最后结果有final_accuracy说明训练结束
         :param filepath: NJUCloud/id/model/modelname/result.txt
         :return: json
         '''
@@ -59,10 +59,11 @@ class TensorResultView(APIView):
                 result.append(line_data)
                 line = f.readline()
             data["every_result"] = result
-            if(line==None or len(line)<1):
-                data["final_accuracy"]=float(sum(accurary)) / len(accurary)
-            else:
-                data["final_accuracy"] = line.split(':')[1].strip()
+            if(len(result)>(iter%100)):
+                if(line==None or len(line)<1):
+                    data["final_accuracy"]=float(sum(accurary)) / len(accurary)
+                else:
+                    data["final_accuracy"] = line.split(':')[1].strip()
         json_data = json.dumps(data)
         return json_data
 

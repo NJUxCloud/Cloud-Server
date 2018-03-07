@@ -438,11 +438,12 @@ def main(_):
                 sess.run(train_op, feed_dict={x: batch[0], y_: batch[1], keep_prob: 0.5})
                 duration = time.time() - start_time
                 # Ask for all the services to stop.
-            test_accuracy = sess.run(accuracy, feed_dict={
-                x: mnist.test.images, y_: mnist.test.labels, keep_prob: 1.0})
-            with open(result_path, 'a') as file:
-                result_line = 'final_accuracy:%f\n' % test_accuracy
-                file.write(result_line+"\n")
+                if(step == iter):
+                    test_accuracy = sess.run(accuracy, feed_dict={
+                        x: mnist.test.images, y_: mnist.test.labels, keep_prob: 1.0})
+                    with open(result_path, 'a') as file:
+                        result_line = 'final_accuracy:%f\n' % test_accuracy
+                        file.write(result_line + "\n")
         sv.stop()
 
 

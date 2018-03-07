@@ -442,8 +442,8 @@ POST 传入的json格式:
 }
 ```
 
-#### `AUTH` `GET` 获得tensorflow的结果 /runtime/train/{modelname}/
-modelname为该训练模型的名称
+#### `AUTH` `GET` 获得tensorflow的结果 /runtime/train/{modelname}/{iter}/
+modelname为该训练模型的名称,iter为之前设置的总迭代次数
 获取的结果格式
 ```json
 {
@@ -504,7 +504,7 @@ modelname为该训练模型的名称
             "step": "1000"
         }
     ],
-    "final_accuracy": 0.44
+    "final_accuracy": 0.44 //如果训练结束就会有final_accuracy，没有结束是没有这一项的
 }
 
 ```

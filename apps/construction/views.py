@@ -124,6 +124,7 @@ class ConstructView(APIView):
         print(cmds)
         cmds.append('docker cp /root/%s %s:/notebooks' % (relative_path,global_settings.WK))
         cmds.append('docker exec -it %s /bin/bash' % global_settings.PS)
+        cmds.append('pkill -9 python')
         cmds.append('cd  %s' % modelname)
         python_cmds= get_sample_train_cmd(global_settings.PSHOSTS, global_settings.WKHOSTS, config,ratio)
         cmds.append('nohup '+python_cmds[0]+'&')
