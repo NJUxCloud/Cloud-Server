@@ -446,7 +446,7 @@ def read_user_data(path, ratio):
                 img = Image.open(name)
                 img = numpy.array(img)
                 img = img.reshape([img.shape[0], img.shape[1], 1])
-                labels.append(lablejson[filename[:-4]])
+                labels.append(int(lablejson[filename]))
                 images.append(img)
     images = numpy.array(images)
     labels = dense_to_one_hot(numpy.array(labels), 10)
