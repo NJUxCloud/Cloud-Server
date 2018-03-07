@@ -62,7 +62,8 @@ class TensorResultView(APIView):
                 result.append(line_data)
                 line = f.readline()
             data["every_result"] = result
-            if(len(result)>(iter%100)):
+            iter=int(iter)
+            if(len(result)>(iter/100)):
                 if(line==None or len(line)<1):
                     data["final_accuracy"]=float(sum(accurary)) / len(accurary)
                 else:
