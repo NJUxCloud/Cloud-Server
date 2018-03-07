@@ -28,7 +28,7 @@ class TensorResultView(APIView):
         host.connect()
         relative_dir='NJUCloud/' + userid + '/model/'+modelname
         relative_path =relative_dir +'/result.txt'
-        cmd=global_settings.TRAIN_RESULT_ORDER % (relative_path, relative_dir)
+        cmd=global_settings.TRAIN_RESULT_ORDER % (modelname, relative_dir)
         host.send(cmd)
         cmd ='docker cp %s:/notebooks/%s/train_model /root/%s' % (global_settings.WK, modelname, relative_dir)
         host.send(cmd)
