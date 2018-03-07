@@ -28,10 +28,11 @@ class TensorResultView(APIView):
         host.connect()
         relative_dir='NJUCloud/' + userid + '/model/'+modelname
         relative_path =relative_dir +'/result.txt'
-        cmd=global_settings.TRAIN_RESULT_ORDER % (modelname, relative_dir)
-        host.send(cmd)
-        cmd ='docker cp %s:/notebooks/%s/train_model /root/%s' % (global_settings.WK, modelname, relative_dir)
-        host.send(cmd)
+        cmds=[]
+        cmds.append('docker cp %s:/notebooks/%s/result.txt /root/%s' % (global_settings.WK, modelname, relative_dir))
+        cmds.append('docker cp %s:/notebooks/%s/train_model /root/%s' % (global_settings.WK, modelname, relative_dir))
+        for cmd in cmds:
+            host.send(cmd)
         remote_file_path = relative_path
         local_file_path = global_settings.LOCAL_STORAGE_PATH+global_settings.LOCAL_TRAIN_RESULT_PATH
         host.download(remote_file_path,local_file_path)
