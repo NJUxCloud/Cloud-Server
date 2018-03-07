@@ -233,11 +233,14 @@ class DataDetail(APIView):
         :return:
         """
         raw_data = RawData.objects.get(pk=pk)
+        # TODO 测试relative_path 不为None时情况
         if relative_path is not None:
-            userid = str(raw_data.owner.id)
+            print("relative_path" + relative_path)
+            # userid = str(raw_data.owner.id)
             # 文件类别(doc, code, audio, picture)
-            file_class = raw_data.file_type
-            local_file_path = global_settings.LOCAL_STORAGE_PATH + 'NJUCloud/' + userid + '/data/' + file_class + '/' + relative_path
+            # file_class = raw_data.file_type
+            local_file_path = global_settings.LOCAL_STORAGE_PATH + raw_data.file_path + '/' + relative_path
+            print('relative_path is not None: ' + local_file_path)
             if local_file_path.endswith('.csv'):
                 file_type = RawData.DOC
             else:
@@ -276,6 +279,7 @@ class DataDetail(APIView):
                     response = HttpResponse(fsock)
                 response['Content-Disposition'] = 'attachment; filename=' + filename
             except IOError:
+                traceback.print_exc()
                 response = HttpResponseNotFound()
             return response
         else:
