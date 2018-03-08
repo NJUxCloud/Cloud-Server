@@ -186,7 +186,7 @@ class DataView(APIView):
         #     command = 'wget -c -P ./' + file_path + ' ' + url
         #     host.send(cmd=command)
         # host.close()
-        self.handle_url_local(urls=urls, file_path=global_settings + file_path)
+        self.handle_url_local(urls=urls, file_path=global_settings.LOCAL_STORAGE_PATH + file_path)
         data_id = self.save_to_db(file_type=file_class, file_path=file_path, need_unzip=False)
         return data_id
 
