@@ -227,12 +227,12 @@ def dilate(dir, overlap, kernel_value, value2):
         cv2.imwrite(copied_name(dir), new_img)
 
 
-dir = '/Users/keenan/Documents/workspace/Cloud-Server/test-data/test1.jpg'
-img = Image.open(dir)
-print(img.format, img.size, img.mode)
-
-adjust_brightness_contrast(dir, True, 1.5, 30)
-
-dir2 = '/Users/keenan/Documents/workspace/Cloud-Server/test-data/test1_copy.jpg'
-img2 = Image.open(dir2)
-print(img2.format, img2.size, img2.mode)
+# dir = '/Users/keenan/Documents/workspace/Cloud-Server/test-data/test1.jpg'
+# img = Image.open(dir)
+# print(img.format, img.size, img.mode)
+#
+# adjust_brightness_contrast(dir, True, 1.5, 30)
+#
+# dir2 = '/Users/keenan/Documents/workspace/Cloud-Server/test-data/test1_copy.jpg'
+# img2 = Image.open(dir2)
+# print(img2.format, img2.size, img2.mode)
