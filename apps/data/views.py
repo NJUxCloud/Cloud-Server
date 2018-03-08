@@ -178,7 +178,7 @@ class DataView(APIView):
         userid = str(self.request.user.id)
         urls = request.POST.get('url').split(';')
         filename = self.format_name("url")
-        dir_path = global_settings.LOCAL_STORAGE_PATH + 'NJUCloud/' + userid + '/data/' + file_class + '/'
+        dir_path = 'NJUCloud/' + userid + '/data/' + file_class + '/'
         file_path = dir_path + filename
         # host = Linux()
         # host.connect()
