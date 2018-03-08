@@ -65,6 +65,7 @@ class PreprocessView(APIView):
                 os.mkdir(model_data_dir)
 
             cmd = 'cp -R ' + data_location + '/*' + ' ' + model_data_dir
+            print(cmd)
             os.system(cmd)
 
             tag_location = global_settings.LOCAL_STORAGE_PATH + 'NJUCloud/' + \
