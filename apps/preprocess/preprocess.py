@@ -1,24 +1,8 @@
-import tensorflow as tf
 from PIL import Image
 import numpy as np
 import os
 import cv2
-import traceback
-
-
-def save_image(dir, image):
-    """
-    保存图片
-    :param dir: 路径
-    :param image: 图片
-    :return:
-    """
-    im = Image.fromarray(np.uint8(image))
-    im.save(dir)
-
-    img = Image.open(dir)
-    gray_img = img.convert('L')
-    gray_img.save(dir)
+import random
 
 
 def copied_name(name):
@@ -40,14 +24,6 @@ def resize(dir):
     :param overlap:
     :return:
     """
-    # raw_image = tf.gfile.FastGFile(name=dir, mode='rb').read()
-    #
-    # with tf.Session() as sess:
-    #     img = tf.image.decode_jpeg(raw_image)
-    #     img_data = tf.image.resize_images(img, [28, 28], tf.image.ResizeMethod.NEAREST_NEIGHBOR)
-    #     new_img = np.asarray(img_data.eval(), dtype='uint8')
-    #     save_image(dir=dir, image=new_img)
-    #     sess.close()
     print('resizing image: ' + dir)
     im1 = cv2.imread(dir)
     img = cv2.resize(im1, (28, 28), interpolation=cv2.INTER_CUBIC)
@@ -61,17 +37,12 @@ def flip_up_down(dir, overlap, value1, value2):
     :param overlap:
     :return:
     """
-    raw_image = tf.gfile.FastGFile(name=dir, mode='rb').read()
-    with tf.Session() as sess:
-        img_data = tf.image.decode_png(raw_image)
-        adjusted = tf.image.flip_up_down(image=img_data)
-        new_img = np.asarray(adjusted.eval(), dtype='uint8')
-        if not overlap:
-            save_image(dir=dir, image=new_img)
-        else:
-            save_image(dir=copied_name(dir), image=new_img)
-
-        sess.close()
+    img = cv2.imread(dir, 0)
+    new_img = cv2.flip(img, 0)
+    if not overlap:
+        cv2.imwrite(dir, new_img)
+    else:
+        cv2.imwrite(copied_name(dir), new_img)
 
 
 def flip_left_right(dir, overlap, value1, value2):
@@ -81,17 +52,12 @@ def flip_left_right(dir, overlap, value1, value2):
     :param overlap:
     :return:
     """
-    raw_image = tf.gfile.FastGFile(name=dir, mode='rb').read()
-    with tf.Session() as sess:
-        img_data = tf.image.decode_png(raw_image)
-        adjusted = tf.image.flip_left_right(image=img_data)
-        new_img = np.asarray(adjusted.eval(), dtype='uint8')
-        if not overlap:
-            save_image(dir=dir, image=new_img)
-        else:
-            save_image(dir=copied_name(dir), image=new_img)
-
-        sess.close()
+    img = cv2.imread(dir, 0)
+    new_img = cv2.flip(img, 1)
+    if not overlap:
+        cv2.imwrite(dir, new_img)
+    else:
+        cv2.imwrite(copied_name(dir), new_img)
 
 
 def transpose_image(dir, overlap, value1, value2):
@@ -101,142 +67,57 @@ def transpose_image(dir, overlap, value1, value2):
     :param overlap:
     :return:
     """
-    raw_image = tf.gfile.FastGFile(name=dir, mode='rb').read()
-    with tf.Session() as sess:
-        img_data = tf.image.decode_png(raw_image)
-        adjusted = tf.image.transpose_image(image=img_data)
-        new_img = np.asarray(adjusted.eval(), dtype='uint8')
-        if not overlap:
-            save_image(dir=dir, image=new_img)
-        else:
-            save_image(dir=copied_name(dir), image=new_img)
-
-        sess.close()
+    img = cv2.imread(dir, 0)
+    new_img = cv2.flip(img, -1)
+    if not overlap:
+        cv2.imwrite(dir, new_img)
+    else:
+        cv2.imwrite(copied_name(dir), new_img)
 
 
-def adjust_brightness(dir, overlap, delta, value2):
+def adjust_brightness_contrast(dir, overlap, alpha, beta):
     """
     调整亮度
     :param dir:
     :param overlap:
     :return:
     """
-    raw_image = tf.gfile.FastGFile(name=dir, mode='rb').read()
-    with tf.Session() as sess:
-        img_data = tf.image.decode_png(raw_image)
-        adjusted = tf.image.adjust_brightness(image=img_data, delta=delta)
-        new_img = np.asarray(adjusted.eval(), dtype='uint8')
-        if not overlap:
-            save_image(dir=dir, image=new_img)
-        else:
-            save_image(dir=copied_name(dir), image=new_img)
+    img = cv2.imread(dir, 0)
+    w = img.shape[1]
+    h = img.shape[0]
 
-        sess.close()
-    pass
-
-
-def random_brightness(dir, overlap, max_delta, value2):
-    raw_image = tf.gfile.FastGFile(name=dir, mode='rb').read()
-    with tf.Session() as sess:
-        img_data = tf.image.decode_png(raw_image)
-        adjusted = tf.image.random_brightness(image=img_data, max_delta=max_delta)
-        new_img = np.asarray(adjusted.eval(), dtype='uint8')
-        if not overlap:
-            save_image(dir=dir, image=new_img)
-        else:
-            save_image(dir=copied_name(dir), image=new_img)
-        sess.close()
+    for xi in range(0, w):
+        for xj in range(0, h):
+            img[xj, xi] = img[xj, xi] * alpha + beta
+            if img[xj, xi] > 255:
+                img[xj, xi] = 255
+            elif img[xj, xi] < 0:
+                img[xj, xi] = 0
+    if not overlap:
+        cv2.imwrite(dir, img)
+    else:
+        cv2.imwrite(copied_name(dir), img)
 
 
-def adjust_contrast(dir, overlap, contrast_factor, value2) -> True:
-    raw_image = tf.gfile.FastGFile(name=dir, mode='rb').read()
-    with tf.Session() as sess:
-        img_data = tf.image.decode_png(raw_image)
-        adjusted = tf.image.adjust_contrast(img_data, contrast_factor=contrast_factor)
-        new_img = np.asarray(adjusted.eval(), dtype='uint8')
-        if not overlap:
-            save_image(dir=dir, image=new_img)
-        else:
-            save_image(dir=copied_name(dir), image=new_img)
-        sess.close()
+def random_brightness_contrast(dir, overlap, max_alpha, max_beta):
+    img = cv2.imread(dir, 0)
+    w = img.shape[1]
+    h = img.shape[0]
 
+    alpha = random.uniform(0, max_alpha)
+    beta = random.randint(0 - max_beta, max_beta)
 
-def random_contrast(dir, overlap, lower, upper):
-    raw_image = tf.gfile.FastGFile(name=dir, mode='rb').read()
-    with tf.Session() as sess:
-        img_data = tf.image.decode_png(raw_image)
-        adjusted = tf.image.random_contrast(image=img_data, lower=lower, upper=upper)
-        new_img = np.asarray(adjusted.eval(), dtype='uint8')
-        if not overlap:
-            save_image(dir=dir, image=new_img)
-        else:
-            save_image(dir=copied_name(dir), image=new_img)
-        sess.close()
-
-
-def adjust_hue(dir, overlap, delta, value2):
-    raw_image = tf.gfile.FastGFile(name=dir, mode='rb').read()
-    with tf.Session() as sess:
-        img_data = tf.image.decode_png(raw_image)
-        adjusted = tf.image.adjust_hue(image=img_data, delta=delta)
-        new_img = np.asarray(adjusted.eval(), dtype='uint8')
-        if not overlap:
-            save_image(dir=dir, image=new_img)
-        else:
-            save_image(dir=copied_name(dir), image=new_img)
-        sess.close()
-
-
-def random_hue(dir, overlap, max_delta, value2):
-    raw_image = tf.gfile.FastGFile(name=dir, mode='rb').read()
-    with tf.Session() as sess:
-        img_data = tf.image.decode_png(raw_image)
-        adjusted = tf.image.random_hue(image=img_data, max_delta=max_delta)
-        new_img = np.asarray(adjusted.eval(), dtype='uint8')
-        if not overlap:
-            save_image(dir=dir, image=new_img)
-        else:
-            save_image(dir=copied_name(dir), image=new_img)
-        sess.close()
-
-
-def adjust_saturation(dir, overlap, saturation_factor, value2) -> True:
-    raw_image = tf.gfile.FastGFile(name=dir, mode='rb').read()
-    with tf.Session() as sess:
-        img_data = tf.image.decode_png(raw_image)
-        adjusted = tf.image.adjust_saturation(image=img_data, saturation_factor=saturation_factor)
-        new_img = np.asarray(adjusted.eval(), dtype='uint8')
-        if not overlap:
-            save_image(dir=dir, image=new_img)
-        else:
-            save_image(dir=copied_name(dir), image=new_img)
-        sess.close()
-
-
-def random_saturation(dir, overlap, lower, upper) -> True:
-    raw_image = tf.gfile.FastGFile(name=dir, mode='rb').read()
-    with tf.Session() as sess:
-        img_data = tf.image.decode_png(raw_image)
-        adjusted = tf.image.random_saturation(image=img_data, lower=lower, upper=upper)
-        new_img = np.asarray(adjusted.eval(), dtype='uint8')
-        if not overlap:
-            save_image(dir=dir, image=new_img)
-        else:
-            save_image(dir=copied_name(dir), image=new_img)
-        sess.close()
-
-
-def standardize(dir, overlap, value1, value2) -> True:
-    raw_image = tf.gfile.FastGFile(name=dir, mode='rb').read()
-    with tf.Session() as sess:
-        img_data = tf.image.decode_png(raw_image)
-        adjusted = tf.image.per_image_standardization(image=img_data)
-        new_img = np.asarray(adjusted.eval(), dtype='uint8')
-        if not overlap:
-            save_image(dir=dir, image=new_img)
-        else:
-            save_image(dir=copied_name(dir), image=new_img)
-        sess.close()
+    for xi in range(0, w):
+        for xj in range(0, h):
+            img[xj, xi] = img[xj, xi] * alpha + beta
+            if img[xj, xi] > 255:
+                img[xj, xi] = 255
+            elif img[xj, xi] < 0:
+                img[xj, xi] = 0
+    if not overlap:
+        cv2.imwrite(dir, img)
+    else:
+        cv2.imwrite(copied_name(dir), img)
 
 
 def mean_filter(dir, overlap, height, value2):
@@ -276,17 +157,6 @@ def nl_denoise_gray(dir, overlap, h, value2):
         cv2.imwrite(copied_name(dir), new_img)
 
 
-#
-# def nl_denoise_colored(dir, overlap, h, value2):
-#     img = cv2.imread(dir, 0)
-#     print(img.shape)
-#     new_img = cv2.fastNlMeansDenoisingColored(img, None, h, 7, 21)
-#     if overlap:
-#         cv2.imwrite(dir, new_img)
-#     else:
-#         cv2.imwrite(copied_name(dir), new_img)
-
-
 def add_salt_pepper_noise(dir, overlap, percent, value2):
     img = cv2.imread(dir, 0)
     m = int(28 * 28 * percent)
@@ -316,3 +186,53 @@ def add_salt_pepper_noise(dir, overlap, percent, value2):
         cv2.imwrite(dir, img)
     else:
         cv2.imwrite(copied_name(dir), img)
+
+
+def equalize_hist(dir, overlap, value1, value2):
+    img = cv2.imread(dir, 0)
+    new_img = cv2.equalizeHist(img)
+    if not overlap:
+        cv2.imwrite(dir, new_img)
+    else:
+        cv2.imwrite(copied_name(dir), new_img)
+
+
+def clahe(dir, overlap, value1, value2):
+    img = cv2.imread(dir, 0)
+    clahe = cv2.createCLAHE()
+    new_img = clahe.apply(img)
+    if not overlap:
+        cv2.imwrite(dir, new_img)
+    else:
+        cv2.imwrite(copied_name(dir), new_img)
+
+
+def erode(dir, overlap, kernel_value, value2):
+    img = cv2.imread(dir, 0)
+    kernel = np.ones((kernel_value, kernel_value), np.uint8)
+    new_img = cv2.erode(img, kernel)
+    if not overlap:
+        cv2.imwrite(dir, new_img)
+    else:
+        cv2.imwrite(copied_name(dir), new_img)
+
+
+def dilate(dir, overlap, kernel_value, value2):
+    img = cv2.imread(dir, 0)
+    kernel = np.ones((kernel_value, kernel_value), np.uint8)
+    new_img = cv2.dilate(img, kernel)
+    if not overlap:
+        cv2.imwrite(dir, new_img)
+    else:
+        cv2.imwrite(copied_name(dir), new_img)
+
+
+dir = '/Users/keenan/Documents/workspace/Cloud-Server/test-data/test1.jpg'
+img = Image.open(dir)
+print(img.format, img.size, img.mode)
+
+adjust_brightness_contrast(dir, True, 1.5, 30)
+
+dir2 = '/Users/keenan/Documents/workspace/Cloud-Server/test-data/test1_copy.jpg'
+img2 = Image.open(dir2)
+print(img2.format, img2.size, img2.mode)
