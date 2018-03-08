@@ -48,7 +48,7 @@ def getModelNameList(path):
     files = os.listdir(path)
     for f in files:
         if (os.path.isdir(path + '/' + f)):
-            if(os.path.exists(path + '/' + f+'result.txt')):
+            if(os.path.exists(path + '/' + f+'/result.txt')):
                 # 添加文件夹
                 dirList.append(f)
     return dirList
