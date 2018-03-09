@@ -309,14 +309,26 @@ def main(_):
         with open(result_path, 'file') as file:
             json.dump(data, file)
         return
-    im = Image.open(filename)
-    im = im.resize((28, 28)).convert('L')
+    im = Image.open(filename).convert('L')
+    line = 20
+    bizar = int((28-line)/2)
+    im = im.resize((line, line))
     arr = np.asarray(im)
-    arr = np.array(arr, dtype='float32')
     print(arr.shape)
+    arr = np.array(arr, dtype='float32')
+    hist = np.zeros((28, 28))
+    arr.reshape([line, line, 1])
+    for i in range(0, line):
+        for j in range(0, line):
+            if arr[i][j] > 150:
+                hist[i + bizar][bizar + j] = 254
+            elif arr[i][j] > 100:
+                arr[bizar + i][bizar + j] = 220
+    arr = hist
+
     arr /= 255.0
     arr = arr.flatten()
-    print(np.array([arr]).shape)
+    # print(np.array([arr]).shape)
     x = tf.placeholder(tf.float32, [None, 784])
     keep_prob = tf.placeholder(tf.float32)
     predict = get_net(net_type, net_config, x, keep_prob)
