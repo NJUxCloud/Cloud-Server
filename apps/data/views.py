@@ -26,7 +26,7 @@ import CloudServer.global_settings as global_settings
 
 class DataView(APIView):
     # use session
-    authentication_classes = (SessionAuthentication, TokenAuthentication)
+    authentication_classes = (TokenAuthentication)
     # use permission, in this case, we use the permission subclass from framework
     permission_classes = (IsAuthenticated,)
 
