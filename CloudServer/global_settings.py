@@ -2,7 +2,7 @@
 LOCAL_STORAGE_PATH = '/root/'
 
 # 取得kubernetes结果的命令
-KUBERNETES_RESULT_ORDER = 'kubectl describe > /home/info.txt'
+KUBERNETES_RESULT_ORDER = 'kubectl describe nodes > /home/info.txt'
 
 # 本地模型结果保存路径
 LOCAL_TRAIN_RESULT_PATH = 'train_result/train.txt'
