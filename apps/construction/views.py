@@ -22,7 +22,7 @@ from apps.data.util.remote_operation import Linux
 
 
 class ConfigView(APIView):
-    authentication_classes = (TokenAuthentication)
+    authentication_classes = (SessionAuthentication, TokenAuthentication)
 
     def get(self, request, format=None):
         """
@@ -197,7 +197,7 @@ def get_model_json(userid,modelname):
 
 class InferenceView(APIView):
     # use session
-    authentication_classes = (TokenAuthentication)
+    authentication_classes = (SessionAuthentication, TokenAuthentication)
     def post(self,request,modelname):
         userid = str(request.user.id)
         file=request.FILES.get('file')
